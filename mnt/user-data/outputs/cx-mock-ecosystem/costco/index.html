@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Costco Wholesale — Hisense Electronics</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--cc-blue:#005DAA;--cc-red:#E31837;--cc-dark:#003087;--cc-hover:#004A8C;--cc-gold:#C8A24B;--cc-light:#F5F5F5;--cc-gray:#E0E0E0;--cc-border:#CDCDCD;--cc-text:#222;--cc-text2:#666;--cc-green:#2A7A2A;--star:#FF8C00;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Open Sans',Arial,sans-serif;background:#F0F0F0;color:var(--cc-text);font-size:14px}
+
+.demo-bar{background:var(--cc-red);color:#fff;text-align:center;font-size:12px;font-weight:700;padding:4px;letter-spacing:1px;position:sticky;top:0;z-index:1000}
+
+/* HEADER */
+.cc-header-top{background:var(--cc-blue);padding:0 20px}
+.cc-header-top-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:10px 0}
+.cc-logo{display:flex;align-items:center;gap:3px;text-decoration:none;flex-shrink:0}
+.cc-logo-c{background:var(--cc-red);color:#fff;font-size:26px;font-weight:900;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:2px}
+.cc-logo-word{color:#fff;font-size:20px;font-weight:800;letter-spacing:1px}
+.cc-logo-sub{color:#cce0f5;font-size:10px;font-weight:400;letter-spacing:.5px}
+.cc-logo-stack{display:flex;flex-direction:column;justify-content:center;line-height:1.1}
+.cc-search{flex:1;display:flex;max-width:650px;background:#fff;border-radius:4px;overflow:hidden;border:2px solid var(--cc-gold)}
+.cc-search input{flex:1;padding:9px 14px;border:none;outline:none;font-size:14px}
+.cc-search-btn{background:var(--cc-red);border:none;padding:9px 16px;cursor:pointer;color:#fff;font-size:16px}
+.cc-search-btn:hover{background:#c0122f}
+.cc-header-right{display:flex;gap:10px;margin-left:auto;align-items:center}
+.cc-icon-btn{display:flex;flex-direction:column;align-items:center;color:#fff;font-size:11px;gap:2px;cursor:pointer;padding:6px 8px;border-radius:3px}
+.cc-icon-btn:hover{background:rgba(255,255,255,.15)}
+.cc-icon-btn span{font-size:20px}
+.cc-nav{background:var(--cc-dark);border-top:1px solid rgba(255,255,255,.2)}
+.cc-nav-inner{max-width:1400px;margin:0 auto;display:flex;padding:0 0}
+.cc-nav a{color:#fff;text-decoration:none;font-size:13px;padding:9px 16px;display:block;font-weight:600;border-bottom:3px solid transparent}
+.cc-nav a:hover{background:rgba(255,255,255,.12);border-bottom-color:var(--cc-gold)}
+.cc-member-bar{background:#fff;border-bottom:1px solid var(--cc-gray);text-align:center;font-size:12px;padding:6px;color:var(--cc-blue);font-weight:600}
+
+/* BREADCRUMB */
+.breadcrumb{background:#fff;padding:8px 20px;font-size:12px;color:var(--cc-text2);border-bottom:1px solid var(--cc-gray)}
+.breadcrumb a{color:var(--cc-blue);text-decoration:none}.breadcrumb a:hover{text-decoration:underline}
+.breadcrumb span{margin:0 6px;color:#bbb}
+
+.page-wrap{max-width:1400px;margin:0 auto;padding:0 20px}
+
+/* PRODUCT GRID */
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:16px 0 10px}
+.section-title{font-size:22px;font-weight:800;color:var(--cc-blue)}
+.filter-bar{display:flex;gap:8px;padding:10px 0;flex-wrap:wrap;background:#fff;padding:10px 16px;border-radius:4px;margin-bottom:14px;align-items:center}
+.filter-label{font-size:12px;color:var(--cc-text2);font-weight:700}
+.filter-btn{padding:6px 14px;border:1px solid var(--cc-border);background:#fff;border-radius:3px;font-size:12px;cursor:pointer;font-weight:600;transition:all .15s}
+.filter-btn.active,.filter-btn:hover{background:var(--cc-blue);color:#fff;border-color:var(--cc-blue)}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;padding:4px 0 16px}
+.product-card{background:#fff;border:1px solid var(--cc-border);border-radius:4px;overflow:hidden;cursor:pointer;transition:box-shadow .2s;padding:0}
+.product-card:hover{box-shadow:0 3px 14px rgba(0,0,0,.18)}
+.product-card-badge{background:var(--cc-red);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;text-transform:uppercase;letter-spacing:.5px}
+.product-card img{width:100%;height:170px;object-fit:contain;padding:12px;background:var(--cc-light)}
+.product-card-body{padding:12px}
+.product-card-title{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:4px;color:var(--cc-text)}
+.product-card-model{font-size:11px;color:var(--cc-text2);margin-bottom:6px}
+.star-row{display:flex;align-items:center;gap:4px;margin-bottom:6px}
+.stars{color:var(--star);font-size:13px}
+.review-count{font-size:11px;color:var(--cc-blue);font-weight:600}
+.member-price-label{font-size:10px;font-weight:700;color:var(--cc-text2);text-transform:uppercase;letter-spacing:.5px}
+.product-card-price{font-size:22px;font-weight:800;color:var(--cc-text)}
+.btn-shop{width:100%;margin-top:10px;padding:9px;background:var(--cc-blue);color:#fff;border:none;border-radius:3px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-shop:hover{background:var(--cc-hover)}
+
+/* DETAIL */
+#detail-view{display:none}
+.back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--cc-blue);background:none;border:none;font-size:13px;cursor:pointer;padding:12px 0;font-family:inherit;font-weight:700}
+.back-btn:hover{text-decoration:underline}
+.detail-grid{display:grid;grid-template-columns:1fr 380px;gap:28px;padding:16px 0}
+.detail-main{display:flex;gap:20px;flex-wrap:wrap}
+.main-img{flex:1;min-width:300px;background:#fff;border:1px solid var(--cc-border);border-radius:4px;padding:24px;display:flex;align-items:center;justify-content:center}
+.main-img img{max-width:100%;max-height:380px;object-fit:contain}
+.detail-info{flex:1;min-width:280px}
+.detail-title{font-size:20px;font-weight:800;line-height:1.3;margin-bottom:6px;color:var(--cc-text)}
+.detail-model{font-size:12px;color:var(--cc-text2);margin-bottom:10px}
+.detail-rating-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.member-price-section{background:var(--cc-light);border:1px solid var(--cc-gray);border-radius:4px;padding:14px;margin-bottom:14px}
+.member-price-section .label{font-size:11px;font-weight:700;color:var(--cc-text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.member-price-section .price-big{font-size:30px;font-weight:800;color:var(--cc-red)}
+.member-price-section .was{font-size:13px;color:var(--cc-text2);text-decoration:line-through;margin-top:2px}
+.member-price-section .save{font-size:13px;color:var(--cc-green);font-weight:700}
+.member-note{font-size:11px;color:var(--cc-blue);font-weight:700;margin-top:6px;display:flex;align-items:center;gap:4px}
+.btn-add-cart-big{width:100%;padding:12px;background:var(--cc-blue);color:#fff;border:none;border-radius:3px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px}
+.btn-add-cart-big:hover{background:var(--cc-hover)}
+.delivery-note{font-size:12px;color:var(--cc-text2);margin-top:8px;line-height:1.5}
+.delivery-note strong{color:var(--cc-blue)}
+
+/* SPECS */
+.specs-table{width:100%;border-collapse:collapse;margin-top:10px}
+.specs-table tr:nth-child(even) td{background:var(--cc-light)}
+.specs-table td{padding:9px 12px;border:1px solid var(--cc-gray);font-size:13px}
+.specs-table td:first-child{font-weight:700;color:var(--cc-blue);width:38%}
+
+/* Q&A */
+.qa-section{background:#fff;border:1px solid var(--cc-border);border-radius:4px;padding:20px;margin-top:20px}
+.qa-title{font-size:20px;font-weight:800;color:var(--cc-blue);margin-bottom:4px}
+.qa-subtitle{font-size:13px;color:var(--cc-text2);margin-bottom:14px}
+.qa-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--cc-gray)}
+.qa-sort{padding:7px 12px;border:1px solid var(--cc-border);border-radius:3px;font-size:13px;background:#fff;cursor:pointer}
+.btn-ask{padding:9px 18px;background:var(--cc-blue);color:#fff;border:none;border-radius:3px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-ask:hover{background:var(--cc-hover)}
+.btn-refresh{padding:9px 14px;background:#fff;color:var(--cc-blue);border:1px solid var(--cc-blue);border-radius:3px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px}
+.btn-refresh:hover{background:var(--cc-light)}
+.question-item{border:1px solid var(--cc-gray);border-radius:4px;margin-bottom:12px;overflow:hidden}
+.question-head{background:var(--cc-light);padding:13px 15px;display:flex;gap:10px;align-items:flex-start}
+.q-badge{background:var(--cc-blue);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:2px;flex-shrink:0;letter-spacing:.5px;margin-top:2px}
+.q-text{font-size:14px;font-weight:700;flex:1}
+.q-meta{font-size:11px;color:var(--cc-text2);margin-top:4px;font-weight:400}
+.sentiment-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;font-weight:700;margin-left:6px}
+.s-positive{background:#dcfce7;color:#166534}.s-neutral{background:#f1f5f9;color:#475569}.s-negative{background:#fee2e2;color:#991b1b}
+.answer-body{padding:13px 15px;border-top:1px solid var(--cc-gray);display:flex;gap:10px;align-items:flex-start}
+.a-badge{background:var(--cc-green);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:2px;flex-shrink:0;letter-spacing:.5px}
+.a-text{font-size:13px;line-height:1.6;flex:1}
+.a-meta{font-size:11px;color:var(--cc-text2);margin-top:4px}
+.unanswered{padding:13px 15px;font-size:12px;color:var(--cc-text2);font-style:italic;border-top:1px solid var(--cc-gray);background:#FFFBF0}
+.qa-loading{text-align:center;padding:28px;color:var(--cc-text2)}
+.spinner{width:28px;height:28px;border:3px solid var(--cc-gray);border-top-color:var(--cc-blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pagination{display:flex;gap:4px;margin-top:14px;justify-content:center}
+.page-btn{padding:6px 12px;border:1px solid var(--cc-border);background:#fff;border-radius:3px;cursor:pointer;font-size:13px;font-weight:600}
+.page-btn.active{background:var(--cc-blue);color:#fff;border-color:var(--cc-blue)}
+.ask-form{background:var(--cc-light);border:1px solid var(--cc-gray);border-radius:4px;padding:14px;margin-bottom:14px;display:none}
+.ask-form h4{font-size:14px;font-weight:700;margin-bottom:10px;color:var(--cc-blue)}
+.ask-form input,.ask-form textarea{width:100%;padding:9px 12px;border:1px solid var(--cc-border);border-radius:3px;font-size:13px;font-family:inherit;margin-bottom:8px;outline:none}
+.ask-form input:focus,.ask-form textarea:focus{border-color:var(--cc-blue)}
+.ask-form textarea{height:80px;resize:vertical}
+.btn-submit-q{padding:9px 18px;background:var(--cc-blue);color:#fff;border:none;border-radius:3px;font-size:13px;font-weight:700;cursor:pointer}
+.filter-unanswered{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;font-weight:600}
+.ai-conf{font-size:10px;color:var(--cc-text2)}
+
+/* ADMIN */
+.admin-toggle{position:fixed;bottom:20px;right:20px;background:var(--cc-blue);color:#fff;border:2px solid var(--cc-gold);border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer;z-index:200;display:flex;align-items:center;justify-content:center}
+#admin-panel{position:fixed;right:0;top:0;bottom:0;width:380px;background:#fff;border-left:3px solid var(--cc-gold);z-index:300;overflow-y:auto;display:none;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,.15)}
+#admin-panel.open{display:flex}
+.admin-header{background:var(--cc-blue);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.admin-header h3{font-size:15px;font-weight:800;color:var(--cc-gold)}
+.admin-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
+.admin-body{padding:16px;flex:1}
+.admin-section{margin-bottom:20px}
+.admin-section h4{font-size:12px;font-weight:700;color:var(--cc-blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--cc-gray)}
+.admin-stat{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid var(--cc-light)}
+.admin-stat-val{font-weight:800;color:var(--cc-blue)}
+.admin-btn{width:100%;padding:9px;border:none;border-radius:3px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:7px}
+.admin-btn-blue{background:var(--cc-blue);color:#fff}.admin-btn-blue:hover{background:var(--cc-hover)}
+.admin-btn-outline{background:#fff;color:var(--cc-blue);border:2px solid var(--cc-blue)}
+.admin-count-inp{width:60px;padding:6px;border:1px solid var(--cc-border);border-radius:3px;font-size:13px;text-align:center}
+.admin-row{display:flex;gap:8px;align-items:center;margin-bottom:7px}
+.admin-log{background:var(--cc-light);border:1px solid var(--cc-border);border-radius:3px;padding:10px;max-height:160px;overflow-y:auto;font-size:11px;font-family:monospace;line-height:1.8}
+.admin-log-item{color:var(--cc-text2)}.admin-log-item.s{color:var(--cc-green)}.admin-log-item.e{color:var(--cc-red)}
+.excel-btn{background:#217346;color:#fff;border:none;border-radius:3px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%;justify-content:center;margin-bottom:7px}
+.timer-badge{background:var(--cc-gold);color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+.toast-wrap{position:fixed;bottom:70px;right:20px;z-index:500;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--cc-dark);color:#fff;padding:10px 16px;border-radius:4px;font-size:13px;border-left:4px solid var(--cc-gold);animation:tslide .25s ease;max-width:280px;font-weight:600}
+.toast.err{border-left-color:var(--cc-red)}
+@keyframes tslide{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
+.cc-footer{background:var(--cc-blue);color:#fff;margin-top:40px;padding:24px 20px;text-align:center;font-size:12px}
+.cc-footer a{color:var(--cc-gold);text-decoration:none;margin:0 8px;font-weight:700}
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr}.detail-main{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<div class="demo-bar">⚠️ DEMO / MOCK SITE — For CX AgentX POC Testing Only · Not affiliated with Costco Wholesale Corporation</div>
+
+<header>
+  <div class="cc-header-top">
+    <div class="cc-header-top-inner">
+      <a class="cc-logo" href="#" onclick="showListing()">
+        <div class="cc-logo-c">C</div>
+        <div class="cc-logo-stack">
+          <span class="cc-logo-word">COSTCO</span>
+          <span class="cc-logo-sub">WHOLESALE</span>
+        </div>
+      </a>
+      <div class="cc-search">
+        <input type="text" id="search-input" placeholder="Search for products..." onkeydown="if(event.key==='Enter')filterProducts()">
+        <button class="cc-search-btn" onclick="filterProducts()">🔍</button>
+      </div>
+      <div class="cc-header-right">
+        <div class="cc-icon-btn"><span>📍</span><span>Warehouses</span></div>
+        <div class="cc-icon-btn"><span>👤</span><span>Sign In</span></div>
+        <div class="cc-icon-btn" onclick="toast('Cart updated!')"><span>🛒</span><span>Cart</span></div>
+      </div>
+    </div>
+  </div>
+  <nav class="cc-nav">
+    <div class="cc-nav-inner">
+      <a href="#">Shop</a>
+      <a href="#" style="color:var(--cc-gold)">Electronics</a>
+      <a href="#">Appliances</a>
+      <a href="#">Furniture</a>
+      <a href="#">Grocery</a>
+      <a href="#">Travel</a>
+      <a href="#">Pharmacy</a>
+      <a href="#">Services</a>
+    </div>
+  </nav>
+  <div class="cc-member-bar">⭐ Costco Executive Members Earn 2% Annual Reward on Most Purchases</div>
+</header>
+
+<div class="breadcrumb" id="breadcrumb">
+  <a href="#" onclick="showListing()">Home</a><span>›</span>
+  <a href="#">Electronics</a><span>›</span>Hisense
+</div>
+
+<div class="page-wrap">
+
+  <!-- LISTING -->
+  <div id="listing-view">
+    <div class="section-header">
+      <div class="section-title" id="listing-title">Hisense Electronics</div>
+      <span style="font-size:13px;color:var(--cc-text2)" id="product-count"></span>
+    </div>
+    <div class="filter-bar">
+      <span class="filter-label">Category:</span>
+      <button class="filter-btn active" onclick="setFilter('all',this)">All Items</button>
+      <button class="filter-btn" onclick="setFilter('tv',this)">TVs</button>
+      <button class="filter-btn" onclick="setFilter('refrigerator',this)">Refrigerators</button>
+      <button class="filter-btn" onclick="setFilter('air_cooler',this)">Air Conditioners</button>
+      <button class="filter-btn" onclick="setFilter('washing_machine',this)">Washers</button>
+      <button class="filter-btn" onclick="setFilter('gas_range',this)">Ranges</button>
+      <button class="filter-btn" onclick="setFilter('microwave',this)">Microwaves</button>
+      <button class="filter-btn" onclick="setFilter('home_appliance',this)">Home Appliances</button>
+    </div>
+    <div class="product-grid" id="product-grid">
+      <div class="qa-loading"><div class="spinner"></div>Loading products…</div>
+    </div>
+  </div>
+
+  <!-- DETAIL -->
+  <div id="detail-view">
+    <button class="back-btn" onclick="showListing()">← Back to Hisense</button>
+    <div class="detail-grid">
+      <div>
+        <div class="detail-main">
+          <div class="main-img"><img id="detail-img" src="" alt=""></div>
+          <div class="detail-info">
+            <div class="detail-title" id="detail-title"></div>
+            <div class="detail-model" id="detail-model"></div>
+            <div class="detail-rating-row">
+              <span class="stars" id="detail-stars"></span>
+              <span id="detail-rating-val" style="font-size:13px;font-weight:700;margin-left:4px"></span>
+              <span id="detail-reviews" style="font-size:12px;color:var(--cc-blue);font-weight:600;margin-left:6px"></span>
+            </div>
+            <div class="member-price-section">
+              <div class="label">Member Price</div>
+              <div class="price-big" id="detail-price"></div>
+              <div class="was" id="detail-was"></div>
+              <div class="save" id="detail-save"></div>
+              <div class="member-note">🌟 Executive members earn 2% back</div>
+            </div>
+            <button class="btn-add-cart-big" onclick="toast('Added to cart!')">Add to Cart</button>
+            <div class="delivery-note">
+              <strong>Free Delivery</strong> on orders $75+ · Available for warehouse pickup<br>
+              Free 90-day returns · <strong>Costco.com</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- SPECS -->
+        <div style="background:#fff;border:1px solid var(--cc-border);border-radius:4px;padding:20px;margin-top:18px">
+          <h3 style="font-size:18px;font-weight:800;color:var(--cc-blue);margin-bottom:12px;border-bottom:1px solid var(--cc-gray);padding-bottom:10px">Product Details</h3>
+          <p id="detail-desc" style="font-size:14px;line-height:1.7;margin-bottom:14px"></p>
+          <table class="specs-table" id="specs-table"></table>
+        </div>
+
+        <!-- Q&A -->
+        <div class="qa-section" id="qa-section">
+          <div class="qa-title">Questions &amp; Answers</div>
+          <div class="qa-subtitle" id="qa-total-count"></div>
+          <div class="qa-controls">
+            <label class="filter-unanswered"><input type="checkbox" id="filter-unanswered" onchange="loadQuestions(1)"> Unanswered only</label>
+            <select class="qa-sort" id="qa-sort" onchange="loadQuestions(1)">
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+            </select>
+            <button class="btn-refresh" id="refresh-btn" onclick="generateQuestions()">🔄 Refresh</button>
+            <button class="btn-ask" onclick="toggleAskForm()">Ask a Question</button>
+          </div>
+          <div class="ask-form" id="ask-form">
+            <h4>Ask a Question</h4>
+            <input type="text" id="asker-name" placeholder="Your name (optional)">
+            <textarea id="ask-input" placeholder="What would you like to know about this item?"></textarea>
+            <div style="display:flex;gap:8px">
+              <button class="btn-submit-q" onclick="submitQuestion()">Submit Question</button>
+              <button style="padding:9px 16px;background:#fff;border:1px solid var(--cc-border);border-radius:3px;cursor:pointer;font-size:13px;font-weight:600" onclick="toggleAskForm()">Cancel</button>
+            </div>
+          </div>
+          <div id="qa-list"><div class="qa-loading"><div class="spinner"></div>Loading questions…</div></div>
+          <div id="qa-pagination" class="pagination"></div>
+        </div>
+      </div>
+
+      <!-- Buy sidebar -->
+      <div>
+        <div style="background:#fff;border:1px solid var(--cc-border);border-radius:4px;padding:20px;position:sticky;top:60px">
+          <div style="font-size:12px;font-weight:700;color:var(--cc-text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Member Price</div>
+          <div style="font-size:28px;font-weight:800;color:var(--cc-red);margin-bottom:4px" id="buy-price"></div>
+          <div style="font-size:13px;color:var(--cc-text2);margin-bottom:12px" id="buy-was"></div>
+          <div style="font-size:12px;color:var(--cc-green);font-weight:700;margin-bottom:12px">✓ In Stock</div>
+          <button class="btn-add-cart-big" onclick="toast('Added to cart!')">Add to Cart</button>
+          <div style="font-size:12px;color:var(--cc-text2);margin-top:8px;line-height:1.6">
+            Free Delivery on orders $75+<br>
+            Free 90-day returns<br>
+            <span style="color:var(--cc-blue);font-weight:700">Includes Costco warranty</span>
+          </div>
+          <hr style="margin:12px 0;border:none;border-top:1px solid var(--cc-gray)">
+          <div style="font-size:12px;color:var(--cc-text2);font-weight:700;margin-bottom:8px">Also Available At Warehouse</div>
+          <div style="font-size:12px;color:var(--cc-text2)">Check local warehouse availability for same-day pickup</div>
+          <hr style="margin:12px 0;border:none;border-top:1px solid var(--cc-gray)">
+          <div style="font-size:11px;color:var(--cc-text2)" id="qa-tab-count"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="admin-toggle" onclick="toggleAdmin()" title="Admin Panel (Ctrl+Shift+A)">⚙</button>
+
+<div id="admin-panel">
+  <div class="admin-header">
+    <h3>⚙ Admin — Costco Mock</h3>
+    <button class="admin-close" onclick="toggleAdmin()">✕</button>
+  </div>
+  <div class="admin-body">
+    <div class="admin-section">
+      <h4>📊 Stats</h4>
+      <div class="admin-stat"><span>Products</span><span class="admin-stat-val" id="adm-products">—</span></div>
+      <div class="admin-stat"><span>Questions</span><span class="admin-stat-val" id="adm-questions">—</span></div>
+      <div class="admin-stat"><span>Answered</span><span class="admin-stat-val" id="adm-answered">—</span></div>
+      <div class="admin-stat"><span>Unanswered</span><span class="admin-stat-val" id="adm-unanswered">—</span></div>
+      <div class="admin-stat"><span>Auto-refresh</span><span class="timer-badge" id="adm-timer">3:00</span></div>
+    </div>
+    <div class="admin-section">
+      <h4>🎲 Generate</h4>
+      <div class="admin-row"><span style="font-size:13px">Count</span><input type="number" class="admin-count-inp" id="gen-count" value="5" min="1" max="20"></div>
+      <button class="admin-btn admin-btn-blue" onclick="adminGenerate()">Generate for Current Product</button>
+      <button class="admin-btn admin-btn-blue" onclick="adminGenerateAll()">Bulk Generate All</button>
+    </div>
+    <div class="admin-section">
+      <h4>📥 Exports</h4>
+      <button class="excel-btn" onclick="exportUrls()">📊 Product URLs (Excel)</button>
+      <button class="admin-btn admin-btn-outline" onclick="exportQA()">📄 Q&amp;A Export (CSV)</button>
+    </div>
+    <div class="admin-section">
+      <h4>📡 Log</h4>
+      <div class="admin-log" id="adm-log"></div>
+    </div>
+    <div class="admin-section">
+      <h4>🔗 API URL</h4>
+      <input type="text" id="api-url-input" style="width:100%;padding:7px;border:1px solid var(--cc-border);border-radius:3px;font-size:12px;font-family:monospace" oninput="API_BASE=this.value">
+      <div style="font-size:11px;color:var(--cc-text2);margin-top:4px">Update after Railway deployment</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<footer class="cc-footer">
+  <div>MOCK / DEMO SITE — CX AgentX POC · Not affiliated with Costco Wholesale Corporation</div>
+  <div style="margin-top:8px">
+    <a href="#" onclick="exportUrls()">Product URLs</a>
+    <a href="#" onclick="window.open(API_BASE+'/api','_blank')">API Docs</a>
+    <a href="https://fanciful-nasturtium-93740d.netlify.app" target="_blank">CX AgentX App</a>
+  </div>
+</footer>
+
+<script>
+let API_BASE = localStorage.getItem('cx_api_base') || 'https://cx-agentx-mock-api.up.railway.app';
+const RETAILER_ID = 'costco';
+let ALL_PRODUCTS=[],currentProduct=null,currentPage=1,currentFilter='all';
+let autoTimer=180,adminOpen=false;
+const ADMIN_LOG=[];
+
+function stars(r){return '★'.repeat(Math.round(r))+'☆'.repeat(5-Math.round(r));}
+function fmtDate(d){return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function toast(msg,type='ok'){const el=document.createElement('div');el.className=`toast${type==='err'?' err':''}`;el.textContent=msg;document.getElementById('toasts').appendChild(el);setTimeout(()=>el.remove(),3000);}
+function log(msg,type='i'){ADMIN_LOG.unshift({msg,type,time:new Date().toLocaleTimeString()});const el=document.getElementById('adm-log');if(el)el.innerHTML=ADMIN_LOG.slice(0,30).map(l=>`<div class="admin-log-item ${l.type}">[${l.time}] ${l.msg}</div>`).join('');}
+async function apiFetch(path,opts={}){try{log(`${opts.method||'GET'} ${path}`);const r=await fetch(API_BASE+path,{headers:{'Content-Type':'application/json'},...opts});if(!r.ok)throw new Error(`HTTP ${r.status}`);return await r.json();}catch(e){log(`ERROR: ${e.message}`,'e');toast('API error — check Admin panel','err');return null;}}
+
+async function loadProducts(){const d=await apiFetch(`/api/products?retailer=${RETAILER_ID}`);if(!d){document.getElementById('product-grid').innerHTML='<p style="color:red;padding:20px">Cannot load products. Update API URL in Admin panel.</p>';return;}ALL_PRODUCTS=d.data;renderProducts();loadAdminStats();}
+function renderProducts(){const search=document.getElementById('search-input').value.toLowerCase();let list=ALL_PRODUCTS.filter(p=>(currentFilter==='all'||p.category===currentFilter)&&(!search||p.title.toLowerCase().includes(search)));document.getElementById('product-count').textContent=`${list.length} items`;document.getElementById('product-grid').innerHTML=list.map(p=>`<div class="product-card" onclick="loadProductDetail('${p.id}')"><div class="product-card-badge">Member Value</div><img src="${p.image}" alt="${p.title}" loading="lazy"><div class="product-card-body"><div class="product-card-title">${p.title}</div><div class="product-card-model">Item #${p.sku}</div><div class="star-row"><span class="stars">${stars(p.rating)}</span><span class="review-count">(${p.review_count.toLocaleString()})</span></div><div class="member-price-label">Member Price</div><div class="product-card-price">$${p.price.toFixed(2)}</div><button class="btn-shop" onclick="event.stopPropagation();toast('Added to cart!')">Add to Cart</button></div></div>`).join('');}
+function setFilter(cat,btn){currentFilter=cat;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderProducts();}
+function filterProducts(){renderProducts();}
+function showListing(){document.getElementById('listing-view').style.display='block';document.getElementById('detail-view').style.display='none';currentProduct=null;}
+
+async function loadProductDetail(id){document.getElementById('listing-view').style.display='none';document.getElementById('detail-view').style.display='block';const d=await apiFetch(`/api/products/${id}`);if(!d)return;const p=d.data;currentProduct=p;document.getElementById('detail-img').src=p.image;document.getElementById('detail-title').textContent=p.title;document.getElementById('detail-model').textContent=`Item #${p.sku}`;document.getElementById('detail-stars').textContent=stars(p.rating);document.getElementById('detail-rating-val').textContent=p.rating;document.getElementById('detail-reviews').textContent=`(${p.review_count.toLocaleString()} reviews)`;document.getElementById('detail-price').textContent=`$${p.price.toFixed(2)}`;const was=(p.base_price||p.price*1.09).toFixed(2);document.getElementById('detail-was').textContent=`Was $${was}`;document.getElementById('detail-save').textContent=`You Save $${(was-p.price).toFixed(2)}`;document.getElementById('buy-price').textContent=`$${p.price.toFixed(2)}`;document.getElementById('buy-was').textContent=`Was $${was}`;document.getElementById('detail-desc').textContent=p.description;document.getElementById('qa-tab-count').textContent=`${p.question_count||0} customer questions`;document.getElementById('specs-table').innerHTML=Object.entries(p.specs||{}).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');loadQuestions(1);}
+
+async function loadQuestions(page=1){if(!currentProduct)return;currentPage=page;const sort=document.getElementById('qa-sort').value;const unanswered=document.getElementById('filter-unanswered').checked;const status=unanswered?'&status=unanswered':'';document.getElementById('qa-list').innerHTML=`<div class="qa-loading"><div class="spinner"></div>Loading questions…</div>`;const d=await apiFetch(`/api/products/${currentProduct.id}/questions?sort=${sort}&page=${page}&limit=8${status}`);if(!d)return;document.getElementById('qa-total-count').textContent=`${d.total} customer question${d.total!==1?'s':''}`;document.getElementById('qa-tab-count').textContent=`${d.total} customer questions`;if(!d.data.length){document.getElementById('qa-list').innerHTML=`<div style="padding:20px;text-align:center;color:var(--cc-text2)">No questions yet. Be the first to ask!</div>`;document.getElementById('qa-pagination').innerHTML='';return;}document.getElementById('qa-list').innerHTML=d.data.map(q=>`<div class="question-item"><div class="question-head"><span class="q-badge">Q</span><div style="flex:1"><div class="q-text">${q.question_text}</div><div class="q-meta">Asked by <strong>${q.asked_by}</strong> · ${fmtDate(q.asked_at)}<span class="sentiment-tag s-${q.sentiment}">${q.sentiment}</span></div></div></div>${q.answer?`<div class="answer-body"><span class="a-badge">A</span><div><div class="a-text">${q.answer.answer_text}</div><div class="a-meta">By <strong>${q.answer.answered_by}</strong> · ${fmtDate(q.answer.answered_at)}${q.answer.is_approved?' ✓':''}</div></div></div>`:`<div class="unanswered">Not yet answered — check back soon!</div>`}</div>`).join('');const pages=d.pages;if(pages>1){document.getElementById('qa-pagination').innerHTML=Array.from({length:pages},(_,i)=>`<button class="page-btn${i+1===page?' active':''}" onclick="loadQuestions(${i+1})">${i+1}</button>`).join('');}else document.getElementById('qa-pagination').innerHTML='';}
+
+async function generateQuestions(){if(!currentProduct){toast('Open a product first','err');return;}const btn=document.getElementById('refresh-btn');btn.innerHTML='⏳ Generating…';btn.disabled=true;const d=await apiFetch('/api/questions/generate',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,count:5})});btn.innerHTML='🔄 Refresh';btn.disabled=false;if(d){toast(`${d.generated} new questions added!`);loadQuestions(1);}}
+async function submitQuestion(){if(!currentProduct)return;const text=document.getElementById('ask-input').value.trim();const name=document.getElementById('asker-name').value.trim();if(!text){toast('Please enter your question','err');return;}const d=await apiFetch('/api/questions/add',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,question_text:text,asked_by:name||'Anonymous'})});if(d){toast('Question submitted!');document.getElementById('ask-input').value='';toggleAskForm();loadQuestions(1);}}
+function toggleAskForm(){const f=document.getElementById('ask-form');f.style.display=f.style.display==='block'?'none':'block';}
+
+function startAutoRefresh(){setInterval(async()=>{autoTimer--;if(autoTimer<=0){autoTimer=180;if(currentProduct){const d=await apiFetch('/api/questions/generate',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,count:2})});if(d){loadQuestions(currentPage);toast('Auto-refreshed!');}}}const m=Math.floor(autoTimer/60).toString().padStart(2,'0'),s=(autoTimer%60).toString().padStart(2,'0');const el=document.getElementById('adm-timer');if(el)el.textContent=`${m}:${s}`;},1000);}
+
+async function loadAdminStats(){const d=await apiFetch('/api/admin/stats');if(!d)return;const r=d.data.by_retailer[RETAILER_ID]||{};document.getElementById('adm-products').textContent=r.products||0;document.getElementById('adm-questions').textContent=r.questions||0;document.getElementById('adm-answered').textContent=r.answered||0;document.getElementById('adm-unanswered').textContent=(r.questions||0)-(r.answered||0);}
+async function adminGenerate(){if(!currentProduct){toast('Open a product first','err');return;}const n=parseInt(document.getElementById('gen-count').value)||5;const d=await apiFetch('/api/questions/generate',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,count:n})});if(d){toast(`Generated ${d.generated}`);loadQuestions(1);loadAdminStats();}}
+async function adminGenerateAll(){const d=await apiFetch('/api/admin/generate-bulk',{method:'POST',body:JSON.stringify({retailer_id:RETAILER_ID,count_per_product:3})});if(d){toast(`Bulk: ${d.generated}`);loadAdminStats();}}
+function toggleAdmin(){adminOpen=!adminOpen;document.getElementById('admin-panel').classList.toggle('open',adminOpen);document.getElementById('api-url-input').value=API_BASE;if(adminOpen)loadAdminStats();}
+function exportUrls(){window.open(API_BASE+'/api/export/urls','_blank');toast('Downloading Excel…');}
+function exportQA(){window.open(API_BASE+'/api/export/qa?retailer='+RETAILER_ID,'_blank');}
+document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&e.key==='A'){e.preventDefault();toggleAdmin();}});
+if(new URLSearchParams(window.location.search).get('admin')==='true')setTimeout(toggleAdmin,500);
+loadProducts();startAutoRefresh();
+</script>
+</body>
+</html>

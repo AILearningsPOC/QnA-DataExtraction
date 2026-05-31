@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Best Buy — Hisense Electronics</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ── BESTBUY EXACT THEME ── */
+:root{--bb-navy:#003087;--bb-blue:#0046BE;--bb-yellow:#FFE000;--bb-hover:#002070;--bb-light:#F2F2F2;--bb-gray:#DBDBDB;--bb-text:#1A1A1A;--bb-text2:#525252;--bb-green:#008000;--bb-red:#BB0628;--star:#FFB800;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Roboto',Arial,sans-serif;background:#fff;color:var(--bb-text);font-size:14px}
+
+/* DEMO WATERMARK */
+.demo-bar{background:#FF6B00;color:#fff;text-align:center;font-size:12px;font-weight:700;padding:4px;letter-spacing:1px;position:sticky;top:0;z-index:1000}
+
+/* HEADER */
+.bb-header{background:var(--bb-navy);padding:0}
+.bb-header-top{display:flex;align-items:center;gap:12px;padding:10px 20px;max-width:1400px;margin:0 auto}
+.bb-logo{color:var(--bb-yellow);font-size:22px;font-weight:700;letter-spacing:-1px;text-decoration:none;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.bb-logo-tag{background:var(--bb-yellow);color:var(--bb-navy);font-size:9px;font-weight:700;padding:1px 5px;border-radius:2px;letter-spacing:.5px}
+.bb-search{flex:1;display:flex;max-width:700px}
+.bb-search input{flex:1;padding:10px 14px;border:none;font-size:14px;outline:none;border-radius:3px 0 0 3px}
+.bb-search-btn{background:var(--bb-yellow);border:none;padding:10px 18px;cursor:pointer;font-weight:700;font-size:14px;border-radius:0 3px 3px 0;color:var(--bb-navy)}
+.bb-header-icons{display:flex;gap:18px;margin-left:auto;color:#fff;font-size:12px}
+.bb-header-icon{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:#fff;text-decoration:none}
+.bb-header-icon:hover{color:var(--bb-yellow)}
+.bb-header-icon span{font-size:18px}
+.bb-nav{background:var(--bb-hover);padding:0 20px;border-top:1px solid rgba(255,255,255,.15)}
+.bb-nav-inner{max-width:1400px;margin:0 auto;display:flex;gap:0}
+.bb-nav a{color:#fff;text-decoration:none;font-size:13px;padding:9px 14px;display:block;font-weight:400}
+.bb-nav a:hover{background:rgba(255,255,255,.12);color:var(--bb-yellow)}
+.bb-nav .active{background:rgba(255,255,255,.1)}
+
+/* BREADCRUMB */
+.breadcrumb{background:var(--bb-light);padding:8px 20px;font-size:12px;color:var(--bb-text2)}
+.breadcrumb a{color:var(--bb-blue);text-decoration:none}.breadcrumb a:hover{text-decoration:underline}
+.breadcrumb span{margin:0 6px;color:#999}
+
+/* MAIN */
+.page-wrap{max-width:1400px;margin:0 auto;padding:0 20px}
+
+/* PRODUCT GRID */
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 12px;border-bottom:2px solid var(--bb-yellow)}
+.section-title{font-size:20px;font-weight:700;color:var(--bb-navy)}
+.filter-bar{display:flex;gap:8px;padding:12px 0;flex-wrap:wrap;align-items:center}
+.filter-label{font-size:12px;color:var(--bb-text2);font-weight:500}
+.filter-btn{padding:6px 14px;border:1px solid var(--bb-gray);background:#fff;border-radius:20px;font-size:12px;cursor:pointer;transition:all .15s}
+.filter-btn.active,.filter-btn:hover{background:var(--bb-blue);color:#fff;border-color:var(--bb-blue)}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;padding:16px 0}
+.product-card{border:1px solid var(--bb-gray);border-radius:4px;overflow:hidden;cursor:pointer;transition:box-shadow .2s;background:#fff}
+.product-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.product-card-img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--bb-light);display:flex;align-items:center;justify-content:center}
+.product-card-img img{width:100%;height:160px;object-fit:contain;padding:12px}
+.product-card-body{padding:12px}
+.product-card-title{font-size:13px;font-weight:500;line-height:1.3;margin-bottom:6px;color:var(--bb-text)}
+.product-card-model{font-size:11px;color:var(--bb-text2);margin-bottom:6px}
+.star-row{display:flex;align-items:center;gap:4px;margin-bottom:6px}
+.stars{color:var(--star);font-size:13px}
+.review-count{font-size:11px;color:var(--bb-blue)}
+.product-card-price{font-size:18px;font-weight:700;color:var(--bb-text)}
+.price-orig{font-size:12px;color:var(--bb-text2);text-decoration:line-through;margin-left:6px}
+.btn-cart{width:100%;margin-top:10px;padding:9px;background:var(--bb-blue);color:#fff;border:none;border-radius:3px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-cart:hover{background:var(--bb-hover)}
+
+/* PRODUCT DETAIL */
+#detail-view{display:none}
+.back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--bb-blue);background:none;border:none;font-size:13px;cursor:pointer;padding:12px 0;font-family:inherit}
+.back-btn:hover{text-decoration:underline}
+.detail-grid{display:grid;grid-template-columns:1fr 380px;gap:32px;padding:20px 0}
+.detail-images{position:sticky;top:80px}
+.main-img{width:100%;background:var(--bb-light);border:1px solid var(--bb-gray);border-radius:4px;display:flex;align-items:center;justify-content:center;padding:24px}
+.main-img img{width:100%;max-height:380px;object-fit:contain}
+.detail-right{padding:0}
+.detail-title{font-size:20px;font-weight:700;line-height:1.3;margin-bottom:8px}
+.detail-model{font-size:12px;color:var(--bb-text2);margin-bottom:10px}
+.detail-rating{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.rating-val{font-size:14px;font-weight:700}
+.detail-price{font-size:28px;font-weight:700;color:var(--bb-text);margin-bottom:6px}
+.was-price{font-size:13px;color:var(--bb-text2);text-decoration:line-through}
+.save-badge{background:#BB0628;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:2px;margin-left:8px}
+.btn-add-cart{width:100%;padding:14px;background:var(--bb-blue);color:#fff;border:none;border-radius:3px;font-size:15px;font-weight:700;cursor:pointer;margin:14px 0 8px}
+.btn-add-cart:hover{background:var(--bb-hover)}
+.btn-wishlist{width:100%;padding:12px;background:#fff;color:var(--bb-blue);border:2px solid var(--bb-blue);border-radius:3px;font-size:14px;font-weight:700;cursor:pointer}
+
+/* TABS */
+.tabs{border-bottom:2px solid var(--bb-gray);display:flex;margin:24px 0 0}
+.tab-btn{padding:12px 20px;border:none;background:none;font-size:14px;font-weight:500;cursor:pointer;color:var(--bb-text2);border-bottom:3px solid transparent;margin-bottom:-2px;font-family:inherit}
+.tab-btn.active{color:var(--bb-blue);border-bottom-color:var(--bb-blue);font-weight:700}
+.tab-content{display:none;padding:20px 0}.tab-content.active{display:block}
+
+/* SPECS */
+.specs-table{width:100%;border-collapse:collapse}
+.specs-table tr:nth-child(even) td{background:var(--bb-light)}
+.specs-table td{padding:9px 14px;border:1px solid var(--bb-gray);font-size:13px}
+.specs-table td:first-child{font-weight:600;width:40%;color:var(--bb-navy)}
+
+/* Q&A SECTION */
+.qa-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.qa-title{font-size:18px;font-weight:700}
+.qa-count{font-size:13px;color:var(--bb-text2)}
+.qa-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.qa-sort{padding:7px 12px;border:1px solid var(--bb-gray);border-radius:3px;font-size:13px;cursor:pointer;background:#fff}
+.btn-ask{padding:9px 18px;background:var(--bb-blue);color:#fff;border:none;border-radius:3px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-refresh{padding:9px 14px;background:#fff;color:var(--bb-blue);border:2px solid var(--bb-blue);border-radius:3px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px}
+.btn-refresh:hover{background:var(--bb-light)}
+.question-item{border:1px solid var(--bb-gray);border-radius:4px;margin-bottom:12px;overflow:hidden}
+.question-head{padding:14px 16px;background:var(--bb-light);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.q-badge{background:var(--bb-blue);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:2px;flex-shrink:0;letter-spacing:.5px}
+.q-text{font-size:14px;font-weight:500;flex:1}
+.q-meta{font-size:11px;color:var(--bb-text2);margin-top:4px}
+.sentiment-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;font-weight:600;margin-left:6px}
+.s-positive{background:#dcfce7;color:#166534}.s-neutral{background:#f1f5f9;color:#475569}.s-negative{background:#fee2e2;color:#991b1b}
+.answer-body{padding:14px 16px}
+.a-badge{background:var(--bb-green);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:2px;flex-shrink:0;letter-spacing:.5px}
+.a-text{font-size:13px;line-height:1.6;margin-top:6px;color:var(--bb-text)}
+.a-meta{font-size:11px;color:var(--bb-text2);margin-top:6px}
+.unanswered-note{padding:14px 16px;font-size:12px;color:var(--bb-text2);font-style:italic}
+.qa-loading{text-align:center;padding:32px;color:var(--bb-text2)}
+.spinner{width:28px;height:28px;border:3px solid var(--bb-gray);border-top-color:var(--bb-blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pagination{display:flex;gap:4px;margin-top:16px;justify-content:center}
+.page-btn{padding:6px 12px;border:1px solid var(--bb-gray);background:#fff;border-radius:3px;cursor:pointer;font-size:13px}
+.page-btn.active{background:var(--bb-blue);color:#fff;border-color:var(--bb-blue)}
+.ask-form{background:var(--bb-light);border:1px solid var(--bb-gray);border-radius:4px;padding:16px;margin-bottom:16px;display:none}
+.ask-form input,.ask-form textarea{width:100%;padding:9px 12px;border:1px solid var(--bb-gray);border-radius:3px;font-size:13px;font-family:inherit;margin-bottom:8px;outline:none}
+.ask-form input:focus,.ask-form textarea:focus{border-color:var(--bb-blue)}
+.ask-form textarea{height:80px;resize:vertical}
+.btn-submit-q{padding:9px 18px;background:var(--bb-blue);color:#fff;border:none;border-radius:3px;font-size:13px;font-weight:700;cursor:pointer}
+.filter-unanswered{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+
+/* ADMIN PANEL */
+.admin-toggle{position:fixed;bottom:20px;right:20px;background:var(--bb-navy);color:var(--bb-yellow);border:2px solid var(--bb-yellow);border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer;z-index:200;display:flex;align-items:center;justify-content:center}
+#admin-panel{position:fixed;right:0;top:0;bottom:0;width:380px;background:#fff;border-left:3px solid var(--bb-yellow);z-index:300;overflow-y:auto;display:none;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,.15)}
+#admin-panel.open{display:flex}
+.admin-header{background:var(--bb-navy);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.admin-header h3{font-size:15px;font-weight:700;color:var(--bb-yellow)}
+.admin-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
+.admin-body{padding:16px;flex:1}
+.admin-section{margin-bottom:20px}
+.admin-section h4{font-size:12px;font-weight:700;color:var(--bb-navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bb-gray)}
+.admin-stat{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid var(--bb-light)}
+.admin-stat-val{font-weight:700;color:var(--bb-blue)}
+.admin-btn{width:100%;padding:9px;border:none;border-radius:3px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:7px}
+.admin-btn-blue{background:var(--bb-blue);color:#fff}.admin-btn-blue:hover{background:var(--bb-navy)}
+.admin-btn-green{background:#166534;color:#fff}
+.admin-btn-outline{background:#fff;color:var(--bb-blue);border:2px solid var(--bb-blue)}
+.admin-count-inp{width:60px;padding:6px;border:1px solid var(--bb-gray);border-radius:3px;font-size:13px;text-align:center}
+.admin-row{display:flex;gap:8px;align-items:center;margin-bottom:7px}
+.admin-log{background:var(--bb-light);border:1px solid var(--bb-gray);border-radius:3px;padding:10px;max-height:160px;overflow-y:auto;font-size:11px;font-family:monospace;line-height:1.8}
+.admin-log-item{color:var(--bb-text2)}
+.admin-log-item.s{color:#166534}.admin-log-item.e{color:#BB0628}
+.excel-btn{background:#217346;color:#fff;border:none;border-radius:3px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%;justify-content:center;margin-bottom:7px}
+.timer-badge{background:var(--bb-yellow);color:var(--bb-navy);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+.ai-conf{font-size:10px;color:var(--bb-text2)}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:70px;right:20px;z-index:500;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--bb-navy);color:#fff;padding:10px 16px;border-radius:4px;font-size:13px;border-left:4px solid var(--bb-yellow);animation:tslide .25s ease;max-width:280px}
+.toast.err{border-left-color:#BB0628}
+@keyframes tslide{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* FOOTER */
+.bb-footer{background:var(--bb-navy);color:#fff;margin-top:40px;padding:24px 20px;text-align:center;font-size:12px}
+.bb-footer a{color:var(--bb-yellow);text-decoration:none;margin:0 8px}
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr}.product-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}}
+</style>
+</head>
+<body>
+
+<div class="demo-bar">⚠️ DEMO / MOCK SITE — For CX AgentX POC Testing Only · Not affiliated with Best Buy Co., Inc.</div>
+
+<header class="bb-header">
+  <div class="bb-header-top">
+    <a class="bb-logo" href="#" onclick="showListing()">
+      <span>Best</span><span class="bb-logo-tag">BUY</span>
+    </a>
+    <div class="bb-search">
+      <input type="text" id="search-input" placeholder="Search products, brands and categories" onkeydown="if(event.key==='Enter')filterProducts()">
+      <button class="bb-search-btn" onclick="filterProducts()">🔍</button>
+    </div>
+    <div class="bb-header-icons">
+      <a class="bb-header-icon" href="#"><span>👤</span>Account</a>
+      <a class="bb-header-icon" href="#"><span>❤️</span>Saved</a>
+      <a class="bb-header-icon" href="#"><span>🛒</span>Cart</a>
+    </div>
+  </div>
+  <nav class="bb-nav">
+    <div class="bb-nav-inner">
+      <a href="#">Deals</a><a href="#" class="active">TVs &amp; Home Theater</a><a href="#">Computers</a>
+      <a href="#">Appliances</a><a href="#">Cell Phones</a><a href="#">Gaming</a><a href="#">Audio</a>
+    </div>
+  </nav>
+</header>
+
+<div class="breadcrumb" id="breadcrumb">
+  <a href="#" onclick="showListing()">Home</a><span>›</span>
+  <a href="#">TVs &amp; Home Theater</a><span>›</span>Hisense
+</div>
+
+<div class="page-wrap">
+
+  <!-- PRODUCT LISTING -->
+  <div id="listing-view">
+    <div class="section-header">
+      <div class="section-title" id="listing-title">Hisense Electronics</div>
+      <span style="font-size:13px;color:var(--bb-text2)" id="product-count"></span>
+    </div>
+    <div class="filter-bar">
+      <span class="filter-label">Category:</span>
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('tv',this)">TVs</button>
+      <button class="filter-btn" onclick="setFilter('refrigerator',this)">Refrigerators</button>
+      <button class="filter-btn" onclick="setFilter('air_cooler',this)">Air Coolers</button>
+      <button class="filter-btn" onclick="setFilter('washing_machine',this)">Washing Machines</button>
+      <button class="filter-btn" onclick="setFilter('gas_range',this)">Gas Ranges</button>
+      <button class="filter-btn" onclick="setFilter('microwave',this)">Microwaves</button>
+      <button class="filter-btn" onclick="setFilter('home_appliance',this)">Home Appliances</button>
+    </div>
+    <div class="product-grid" id="product-grid">
+      <div class="qa-loading"><div class="spinner"></div>Loading products…</div>
+    </div>
+  </div>
+
+  <!-- PRODUCT DETAIL -->
+  <div id="detail-view">
+    <button class="back-btn" onclick="showListing()">← Back to results</button>
+    <div class="detail-grid">
+      <div class="detail-images">
+        <div class="main-img"><img id="detail-img" src="" alt=""></div>
+      </div>
+      <div class="detail-right">
+        <div class="detail-title" id="detail-title"></div>
+        <div class="detail-model" id="detail-model"></div>
+        <div class="detail-rating">
+          <span class="stars" id="detail-stars">★★★★★</span>
+          <span class="rating-val" id="detail-rating-val"></span>
+          <span style="font-size:12px;color:var(--bb-blue)" id="detail-reviews"></span>
+        </div>
+        <div>
+          <span class="detail-price" id="detail-price"></span>
+          <span class="was-price" id="detail-was"></span>
+          <span class="save-badge" id="detail-save"></span>
+        </div>
+        <button class="btn-add-cart" onclick="toast('Added to cart!','ok')">Add to Cart</button>
+        <button class="btn-wishlist" onclick="toast('Saved to Wish List','ok')">Save for Later</button>
+        <div style="font-size:12px;color:var(--bb-green);margin-top:10px">✓ Free shipping — Get it in 2 days</div>
+        <div style="font-size:12px;color:var(--bb-text2);margin-top:4px">✓ Free 2-year Geek Squad Protection available</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('overview',this)">Overview</button>
+      <button class="tab-btn" onclick="switchTab('specs',this)">Specifications</button>
+      <button class="tab-btn" onclick="switchTab('qa',this)">Q&amp;A <span id="qa-tab-count" style="background:var(--bb-blue);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px"></span></button>
+      <button class="tab-btn" onclick="switchTab('reviews',this)">Reviews</button>
+    </div>
+
+    <div class="tab-content active" id="tab-overview">
+      <p id="detail-desc" style="font-size:14px;line-height:1.7;color:var(--bb-text);max-width:800px"></p>
+    </div>
+    <div class="tab-content" id="tab-specs">
+      <table class="specs-table" id="specs-table"></table>
+    </div>
+    <div class="tab-content" id="tab-qa">
+      <div class="qa-header">
+        <div>
+          <div class="qa-title">Customer Questions &amp; Answers</div>
+          <div class="qa-count" id="qa-total-count"></div>
+        </div>
+        <div class="qa-controls">
+          <label class="filter-unanswered">
+            <input type="checkbox" id="filter-unanswered" onchange="loadQuestions(1)"> Unanswered only
+          </label>
+          <select class="qa-sort" id="qa-sort" onchange="loadQuestions(1)">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
+          <button class="btn-refresh" id="refresh-btn" onclick="generateQuestions()">🔄 Refresh</button>
+          <button class="btn-ask" onclick="toggleAskForm()">Ask a Question</button>
+        </div>
+      </div>
+
+      <div class="ask-form" id="ask-form">
+        <div style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--bb-navy)">Ask a Question</div>
+        <input type="text" id="asker-name" placeholder="Your name (optional)">
+        <textarea id="ask-input" placeholder="Type your question about this product…"></textarea>
+        <div style="display:flex;gap:8px">
+          <button class="btn-submit-q" onclick="submitQuestion()">Submit Question</button>
+          <button style="padding:9px 16px;background:#fff;border:1px solid var(--bb-gray);border-radius:3px;cursor:pointer;font-size:13px" onclick="toggleAskForm()">Cancel</button>
+        </div>
+      </div>
+
+      <div id="qa-list"><div class="qa-loading"><div class="spinner"></div>Loading questions…</div></div>
+      <div id="qa-pagination" class="pagination"></div>
+    </div>
+    <div class="tab-content" id="tab-reviews">
+      <div style="text-align:center;padding:32px;color:var(--bb-text2)">
+        <div style="font-size:48px;font-weight:700;color:var(--bb-navy)" id="avg-rating-big"></div>
+        <div class="stars" style="font-size:28px" id="avg-stars-big"></div>
+        <div style="font-size:14px;margin-top:8px" id="review-count-big"></div>
+        <div style="margin-top:16px;font-size:13px">Simulated reviews — this is a DEMO site</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN TOGGLE -->
+<button class="admin-toggle" onclick="toggleAdmin()" title="Admin Panel (Ctrl+Shift+A)">⚙</button>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <div class="admin-header">
+    <h3>⚙ Admin Panel — Best Buy Mock</h3>
+    <button class="admin-close" onclick="toggleAdmin()">✕</button>
+  </div>
+  <div class="admin-body">
+    <div class="admin-section">
+      <h4>📊 Live Stats</h4>
+      <div class="admin-stat"><span>Total Products</span><span class="admin-stat-val" id="adm-products">—</span></div>
+      <div class="admin-stat"><span>Total Questions</span><span class="admin-stat-val" id="adm-questions">—</span></div>
+      <div class="admin-stat"><span>Answered</span><span class="admin-stat-val" id="adm-answered">—</span></div>
+      <div class="admin-stat"><span>Unanswered</span><span class="admin-stat-val" id="adm-unanswered">—</span></div>
+      <div class="admin-stat"><span>Auto-refresh</span><span class="timer-badge" id="adm-timer">3:00</span></div>
+    </div>
+    <div class="admin-section">
+      <h4>🔄 Question Generator</h4>
+      <div class="admin-row">
+        <span style="font-size:13px">Generate</span>
+        <input type="number" class="admin-count-inp" id="gen-count" value="5" min="1" max="20">
+        <span style="font-size:13px">questions</span>
+      </div>
+      <button class="admin-btn admin-btn-blue" onclick="adminGenerate()">🎲 Generate for Current Product</button>
+      <button class="admin-btn admin-btn-blue" onclick="adminGenerateAll()">📦 Bulk Generate All Products</button>
+    </div>
+    <div class="admin-section">
+      <h4>📥 Exports</h4>
+      <button class="excel-btn" onclick="exportUrls()">📊 Download Product URLs (Excel)</button>
+      <button class="admin-btn admin-btn-outline" onclick="exportQA()">📄 Export Q&amp;A (CSV)</button>
+    </div>
+    <div class="admin-section">
+      <h4>📡 API Log</h4>
+      <div class="admin-log" id="adm-log"></div>
+    </div>
+    <div class="admin-section">
+      <h4>🔗 API Base URL</h4>
+      <input type="text" id="api-url-input" value="" style="width:100%;padding:7px;border:1px solid var(--bb-gray);border-radius:3px;font-size:12px;font-family:monospace" oninput="API_BASE=this.value;toast('API URL updated','ok')">
+      <div style="font-size:11px;color:var(--bb-text2);margin-top:4px">Update this after deploying to Railway</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<footer class="bb-footer">
+  <div>MOCK / DEMO SITE — CX AgentX POC · Not affiliated with Best Buy Co., Inc.</div>
+  <div style="margin-top:8px">
+    <a href="#" onclick="exportUrls()">Download Product URLs</a>
+    <a href="#" onclick="window.open(API_BASE+'/api','_blank')">API Docs</a>
+    <a href="https://fanciful-nasturtium-93740d.netlify.app" target="_blank">CX AgentX App</a>
+  </div>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG — Update API_BASE after Railway deploy
+// ══════════════════════════════════════════════
+let API_BASE = localStorage.getItem('cx_api_base') || 'https://cx-agentx-mock-api.up.railway.app';
+const RETAILER_ID = 'bestbuy';
+
+// ── STATE ─────────────────────────────────────
+let ALL_PRODUCTS = [], currentProduct = null, currentPage = 1, currentFilter = 'all';
+let autoTimer = 180, autoInterval = null, adminOpen = false;
+const ADMIN_LOG = [];
+
+// ── UTILS ─────────────────────────────────────
+function stars(rating){ return '★'.repeat(Math.round(rating)) + '☆'.repeat(5-Math.round(rating)); }
+function fmtDate(d){ return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function toast(msg, type='ok'){
+  const el=document.createElement('div');
+  el.className=`toast${type==='err'?' err':''}`;
+  el.textContent=msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+function log(msg, type='i'){
+  ADMIN_LOG.unshift({msg,type,time:new Date().toLocaleTimeString()});
+  const el=document.getElementById('adm-log');
+  if(el) el.innerHTML=ADMIN_LOG.slice(0,30).map(l=>`<div class="admin-log-item ${l.type}">[${l.time}] ${l.msg}</div>`).join('');
+}
+async function apiFetch(path, opts={}){
+  try {
+    log(`${opts.method||'GET'} ${path}`);
+    const r = await fetch(API_BASE+path, { headers:{'Content-Type':'application/json'}, ...opts });
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
+  } catch(e) {
+    log(`ERROR: ${e.message}`, 'e');
+    toast('API error — check console','err');
+    return null;
+  }
+}
+
+// ── PRODUCT LISTING ───────────────────────────
+async function loadProducts(){
+  const data = await apiFetch(`/api/products?retailer=${RETAILER_ID}`);
+  if(!data){ document.getElementById('product-grid').innerHTML='<p style="color:red;padding:20px">Could not load products. Check API_BASE URL in Admin panel.</p>'; return; }
+  ALL_PRODUCTS = data.data;
+  renderProducts();
+  loadAdminStats();
+}
+
+function renderProducts(){
+  const filter = currentFilter;
+  const search = document.getElementById('search-input').value.toLowerCase();
+  let list = ALL_PRODUCTS.filter(p => (filter==='all'||p.category===filter) && (!search || p.title.toLowerCase().includes(search)));
+  document.getElementById('product-count').textContent = `${list.length} results`;
+  document.getElementById('product-grid').innerHTML = list.map(p=>`
+    <div class="product-card" onclick="loadProductDetail('${p.id}')">
+      <div class="product-card-img"><img src="${p.image}" alt="${p.title}" loading="lazy"></div>
+      <div class="product-card-body">
+        <div class="product-card-title">${p.title}</div>
+        <div class="product-card-model">SKU: ${p.sku}</div>
+        <div class="star-row">
+          <span class="stars">${stars(p.rating)}</span>
+          <span class="review-count">(${p.review_count.toLocaleString()})</span>
+        </div>
+        <div><span class="product-card-price">$${p.price.toFixed(2)}</span></div>
+        <button class="btn-cart" onclick="event.stopPropagation();toast('Added to cart!')">Add to Cart</button>
+      </div>
+    </div>`).join('');
+}
+
+function setFilter(cat, btn){
+  currentFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts();
+}
+function filterProducts(){ renderProducts(); }
+function showListing(){
+  document.getElementById('listing-view').style.display='block';
+  document.getElementById('detail-view').style.display='none';
+  document.getElementById('breadcrumb').innerHTML=`<a href="#" onclick="showListing()">Home</a><span>›</span><a href="#">TVs &amp; Home Theater</a><span>›</span>Hisense`;
+  currentProduct=null;
+}
+
+// ── PRODUCT DETAIL ────────────────────────────
+async function loadProductDetail(id){
+  document.getElementById('listing-view').style.display='none';
+  document.getElementById('detail-view').style.display='block';
+  const data = await apiFetch(`/api/products/${id}`);
+  if(!data) return;
+  const p = data.data;
+  currentProduct = p;
+  document.getElementById('detail-img').src = p.image;
+  document.getElementById('detail-img').alt = p.title;
+  document.getElementById('detail-title').textContent = p.title;
+  document.getElementById('detail-model').textContent = `SKU: ${p.sku} · Model: ${p.sku}`;
+  document.getElementById('detail-stars').textContent = stars(p.rating);
+  document.getElementById('detail-rating-val').textContent = p.rating;
+  document.getElementById('detail-reviews').textContent = `(${p.review_count.toLocaleString()} Reviews)`;
+  document.getElementById('detail-price').textContent = `$${p.price.toFixed(2)}`;
+  document.getElementById('detail-was').textContent = `$${(p.base_price||p.price*1.1).toFixed(2)}`;
+  document.getElementById('detail-save').textContent = `Save $${((p.base_price||p.price*1.1)-p.price).toFixed(2)}`;
+  document.getElementById('detail-desc').textContent = p.description;
+  document.getElementById('qa-tab-count').textContent = p.question_count||'';
+  document.getElementById('avg-rating-big').textContent = p.rating;
+  document.getElementById('avg-stars-big').textContent = stars(p.rating);
+  document.getElementById('review-count-big').textContent = `Based on ${p.review_count.toLocaleString()} reviews`;
+  document.getElementById('breadcrumb').innerHTML=`<a href="#" onclick="showListing()">Home</a><span>›</span><a href="#" onclick="showListing()">Hisense</a><span>›</span>${p.title.substring(0,40)}…`;
+  // Specs
+  const specs = p.specs||{};
+  document.getElementById('specs-table').innerHTML = Object.entries(specs).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+  switchTab('qa', document.querySelector('.tab-btn:nth-child(3)'));
+  loadQuestions(1);
+}
+
+// ── TABS ──────────────────────────────────────
+function switchTab(name, btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  if(btn) btn.classList.add('active'); else document.querySelector(`.tab-btn:nth-child(${['overview','specs','qa','reviews'].indexOf(name)+1})`).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='qa' && currentProduct) loadQuestions(1);
+}
+
+// ── Q&A ───────────────────────────────────────
+async function loadQuestions(page=1){
+  if(!currentProduct) return;
+  currentPage=page;
+  const sort = document.getElementById('qa-sort').value;
+  const unanswered = document.getElementById('filter-unanswered').checked;
+  const status = unanswered ? '&status=unanswered' : '';
+  document.getElementById('qa-list').innerHTML=`<div class="qa-loading"><div class="spinner"></div>Loading questions…</div>`;
+  const data = await apiFetch(`/api/products/${currentProduct.id}/questions?sort=${sort}&page=${page}&limit=8${status}`);
+  if(!data) return;
+  document.getElementById('qa-total-count').textContent = `${data.total} question${data.total!==1?'s':''}`;
+  document.getElementById('qa-tab-count').textContent = data.total;
+  if(!data.data.length){
+    document.getElementById('qa-list').innerHTML=`<div style="padding:24px;text-align:center;color:var(--bb-text2)">No questions yet. Be the first to ask!</div>`;
+    document.getElementById('qa-pagination').innerHTML='';
+    return;
+  }
+  document.getElementById('qa-list').innerHTML = data.data.map(q=>`
+    <div class="question-item" data-id="${q.id}">
+      <div class="question-head">
+        <span class="q-badge">Q</span>
+        <div style="flex:1">
+          <div class="q-text">${q.question_text}</div>
+          <div class="q-meta">
+            Asked by <strong>${q.asked_by}</strong> on ${fmtDate(q.asked_at)}
+            <span class="sentiment-tag s-${q.sentiment}">${q.sentiment}</span>
+            <span class="ai-conf">AI: ${Math.round(q.ai_confidence*100)}%</span>
+          </div>
+        </div>
+      </div>
+      ${q.answer ? `
+        <div class="answer-body">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <span class="a-badge">A</span>
+            <div>
+              <div class="a-text">${q.answer.answer_text}</div>
+              <div class="a-meta">Answered by <strong>${q.answer.answered_by}</strong> on ${fmtDate(q.answer.answered_at)}${q.answer.is_approved?' ✓ Verified':''}</div>
+            </div>
+          </div>
+        </div>` : `<div class="unanswered-note">This question has not been answered yet.</div>`}
+    </div>`).join('');
+  // Pagination
+  const pages = data.pages;
+  if(pages>1){
+    document.getElementById('qa-pagination').innerHTML = Array.from({length:pages},(_,i)=>
+      `<button class="page-btn${i+1===page?' active':''}" onclick="loadQuestions(${i+1})">${i+1}</button>`).join('');
+  } else { document.getElementById('qa-pagination').innerHTML=''; }
+}
+
+async function generateQuestions(){
+  if(!currentProduct){ toast('Open a product first','err'); return; }
+  const btn=document.getElementById('refresh-btn');
+  btn.textContent='⏳ Generating…'; btn.disabled=true;
+  const data = await apiFetch('/api/questions/generate',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,count:5})});
+  btn.textContent='🔄 Refresh'; btn.disabled=false;
+  if(data){ toast(`${data.generated} new questions added!`,'ok'); loadQuestions(1); }
+}
+
+async function submitQuestion(){
+  if(!currentProduct) return;
+  const text = document.getElementById('ask-input').value.trim();
+  const name = document.getElementById('asker-name').value.trim();
+  if(!text){ toast('Please enter your question','err'); return; }
+  const data = await apiFetch('/api/questions/add',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,question_text:text,asked_by:name||'Anonymous'})});
+  if(data){ toast('Question submitted!'); document.getElementById('ask-input').value=''; document.getElementById('asker-name').value=''; toggleAskForm(); loadQuestions(1); }
+}
+
+function toggleAskForm(){
+  const f=document.getElementById('ask-form');
+  f.style.display=f.style.display==='block'?'none':'block';
+}
+
+// ── AUTO-REFRESH ──────────────────────────────
+function startAutoRefresh(){
+  autoInterval=setInterval(async()=>{
+    autoTimer--;
+    if(autoTimer<=0){
+      autoTimer=180;
+      if(currentProduct){ const d=await apiFetch('/api/questions/generate',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,count:2})}); if(d){loadQuestions(currentPage);toast('Auto-refreshed — new questions added!');} }
+    }
+    const m=Math.floor(autoTimer/60).toString().padStart(2,'0'),s=(autoTimer%60).toString().padStart(2,'0');
+    const el=document.getElementById('adm-timer');
+    if(el) el.textContent=`${m}:${s}`;
+  },1000);
+}
+
+// ── ADMIN ─────────────────────────────────────
+async function loadAdminStats(){
+  const d=await apiFetch('/api/admin/stats');
+  if(!d)return;
+  const r=d.data.by_retailer[RETAILER_ID]||{};
+  document.getElementById('adm-products').textContent=r.products||0;
+  document.getElementById('adm-questions').textContent=r.questions||0;
+  document.getElementById('adm-answered').textContent=r.answered||0;
+  document.getElementById('adm-unanswered').textContent=(r.questions||0)-(r.answered||0);
+}
+async function adminGenerate(){
+  if(!currentProduct){ toast('Open a product first','err'); return; }
+  const n=parseInt(document.getElementById('gen-count').value)||5;
+  const d=await apiFetch('/api/questions/generate',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,count:n})});
+  if(d){toast(`Generated ${d.generated} questions`);loadQuestions(1);loadAdminStats();}
+}
+async function adminGenerateAll(){
+  const d=await apiFetch('/api/admin/generate-bulk',{method:'POST',body:JSON.stringify({retailer_id:RETAILER_ID,count_per_product:3})});
+  if(d){toast(`Bulk generated ${d.generated} questions`);loadAdminStats();}
+}
+function toggleAdmin(){
+  adminOpen=!adminOpen;
+  document.getElementById('admin-panel').classList.toggle('open',adminOpen);
+  document.getElementById('api-url-input').value=API_BASE;
+  if(adminOpen) loadAdminStats();
+}
+function exportUrls(){ window.open(API_BASE+'/api/export/urls','_blank'); toast('Downloading Excel…'); }
+function exportQA(){ window.open(API_BASE+'/api/export/qa?retailer='+RETAILER_ID,'_blank'); toast('Downloading CSV…'); }
+
+// Keyboard shortcut Ctrl+Shift+A
+document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&e.key==='A'){e.preventDefault();toggleAdmin();}});
+// URL param ?admin=true
+if(new URLSearchParams(window.location.search).get('admin')==='true') setTimeout(toggleAdmin,500);
+
+// ── INIT ──────────────────────────────────────
+loadProducts();
+startAutoRefresh();
+log('BestBuy mock page initialized');
+</script>
+</body>
+</html>
