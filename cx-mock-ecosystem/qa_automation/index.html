@@ -766,7 +766,7 @@ setInterval(()=>document.getElementById('clock').textContent=new Date().toLocale
 // ═══════════════════════════════════════════════
 function renderConfigPanel(){
   document.getElementById('cfg-username').value = CFG.username;
-  document.getElementById('cfg-api-url').value = CFG.apiBaseUrl || '';
+  document.getElementById('cfg-api-url').value = CFG.apiBaseUrl || localStorage.getItem('qa_api_base') || '';
   document.getElementById('cfg-role').value = CFG.role;
   document.getElementById('cfg-client').value = CFG.client;
   document.getElementById('cfg-retailer').value = '';
@@ -782,6 +782,7 @@ function renderConfigPanel(){
 function saveConfig(){
   CFG.username = document.getElementById('cfg-username').value.trim() || 'Operator';
   CFG.apiBaseUrl = (document.getElementById('cfg-api-url').value || '').trim().replace(/\/+$/, '');
+  if(CFG.apiBaseUrl) localStorage.setItem('qa_api_base', CFG.apiBaseUrl);
   CFG.role = document.getElementById('cfg-role').value.trim() || 'Q&A Agent';
   CFG.client = document.getElementById('cfg-client').value.trim();
   CFG.scrapeInterval = parseInt(document.getElementById('cfg-scrape-int').value) || 240;
@@ -1096,16 +1097,19 @@ async function scrapeViaApi(urls){
       const resp = await fetchWithTimeout(`${CFG.apiBaseUrl}/api/products/${productId}/questions?status=unanswered&limit=50`, {}, 8000);
       if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = await resp.json();
-      const questions = Array.isArray(data) ? data : (data.questions || []);
+      // Backend returns { success:true, count:N, data:[...] }
+      const questions = Array.isArray(data) ? data
+                      : Array.isArray(data.data) ? data.data
+                      : (data.questions || []);
       const newQs = questions
-        .filter(q => !q.ai_generated && !q.answered)
+        .filter(q => !q.ai_generated && !q.answered && !q.answer_text)
         .filter(q => !S.questions.find(e => e.apiId && e.apiId === q.id))
         .map(q => ({
           id:uid(), apiId:q.id, apiProductId:productId,
           retailer:u.retailer, product:u.product, model:u.model||'', sku:u.sku||'',
-          question: q.question_text||q.question||'',
-          postedBy: q.asked_by||q.customer_name||'Customer',
-          postedOn: ((q.created_at||q.asked_at||new Date().toISOString()).substring(0,10)),
+          question: q.question_text||q.question||q.text||'',
+          postedBy: q.asked_by||q.customer_name||q.asker||'Customer',
+          postedOn: ((q.created_at||q.asked_at||q.date||new Date().toISOString()).substring(0,10)),
           sourceUrl:u.url, aiGenerated:false, answer:'', status:'pending',
           aiAnswered:false, postedAt:null, postId:null
         }));
@@ -1605,17 +1609,22 @@ async function loadUrlsFromApi(){
     const resp = await fetchWithTimeout(`${CFG.apiBaseUrl}/api/products`, {}, 8000);
     if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data=await resp.json();
-    const products=Array.isArray(data)?data:(data.products||[]);
+    // Backend returns { success:true, data:[...] } or { success:true, count:N, data:[...] }
+    const products = Array.isArray(data) ? data
+                   : Array.isArray(data.data) ? data.data
+                   : (data.products || []);
     let added=0;
     products.forEach(p=>{
       if(!p.id) return;
       const retailer=(p.retailer_id||p.retailer||'OTHER').toUpperCase();
-      const mockUrl=buildMockUrl(retailer, p.id, p.name||p.product_name||'Product');
-      if(S.urls.find(u=>u.apiProductId===p.id)) return; // skip dupes
+      // product title field is 'title' in backend
+      const productName = p.title||p.name||p.product_name||p.id;
+      const mockUrl = buildMockUrl(retailer, p.id, productName);
+      if(S.urls.find(u=>u.apiProductId===p.id)) return;
       S.urls.push({
         id:uid(), apiProductId:p.id,
         retailer:retailer,
-        product:p.name||p.product_name||p.id,
+        product:productName,
         model:p.model||'', sku:p.sku||p.id,
         url:mockUrl,
         status:'pending', lastScraped:null, qCount:0
@@ -1624,31 +1633,34 @@ async function loadUrlsFromApi(){
     });
     renderUrlTable();
     toast(`Loaded ${added} products from API!`);
-    addLog('scrape-log',`🔌 Loaded ${added} product URLs from mock retailer API.`,'s');
+    addLog('scrape-log',`🔌 Loaded ${added} product URLs from mock retailer API (${products.length} total).`,'s');
   } catch(err){
-    const msg=err.name==='AbortError'?'timeout':err.message;
+    const msg=err.message||'Unknown error';
     toast(`API error: ${msg}`,'e');
+    addLog('scrape-log',`❌ Load Q&A failed: ${msg}`,'e');
   }
   btn.disabled=false; btn.innerHTML='📥 Load Q&A';
 }
 
 function buildMockUrl(retailer, productId, name){
-  // Build a mock retailer page URL based on the retailer
-  const slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').substring(0,50);
+  const slug=(name||'product').toLowerCase().replace(/[^a-z0-9]+/g,'-').substring(0,40);
   const bases={
     BESTBUY:'https://mock-bestbuy.netlify.app',
-    WALMART:'https://mock-walmart.netlify.app',
-    AMAZON:'https://mock-amazon.netlify.app',
+    WALMART:'https://mock-walm-art.netlify.app',
+    AMAZON:'https://mock-amazonde.netlify.app',
     COSTCO:'https://mock-costco.netlify.app'
   };
   const base=bases[retailer]||`https://mock-${retailer.toLowerCase()}.netlify.app`;
-  return `${base}/products/${productId}/${slug}`;
+  return `${base}/product/${productId}`;
 }
 
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
 const today=new Date().toISOString().split('T')[0];
+// Restore saved API URL from previous session
+const _savedApi = localStorage.getItem('qa_api_base');
+if(_savedApi){ CFG.apiBaseUrl = _savedApi; }
 const monthAgo=new Date(Date.now()-90*86400000).toISOString().split('T')[0];
 document.getElementById('d-start').value=monthAgo;
 document.getElementById('d-end').value=today;
