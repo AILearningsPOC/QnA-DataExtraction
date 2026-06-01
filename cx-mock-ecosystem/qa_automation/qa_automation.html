@@ -654,6 +654,17 @@
 <div class="toasts" id="toasts"></div>
 
 <script>
+// Timeout-safe fetch — avoids AbortSignal cloning error in sandboxed environments
+async function fetchWithTimeout(url, options, ms) {
+  ms = ms || 8000;
+  options = options || {};
+  return Promise.race([
+    fetch(url, options),
+    new Promise(function(_, reject) {
+      setTimeout(function() { reject(new Error('timeout (' + (ms/1000) + 's)')); }, ms);
+    })
+  ]);
+}
 // ═══════════════════════════════════════════════
 // CONFIG — all tuneable, no hardcoded values
 // ═══════════════════════════════════════════════
