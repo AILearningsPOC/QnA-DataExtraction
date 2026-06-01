@@ -362,12 +362,43 @@ body{font-family:'Open Sans',Arial,sans-serif;background:#F0F0F0;color:var(--cc-
   <div style="margin-top:8px">
     <a href="#" onclick="exportUrls()">Product URLs</a>
     <a href="#" onclick="window.open(API_BASE+'/api','_blank')">API Docs</a>
-    <a href="https://qa-automation.netlify.app" target="_blank">Q&A Automation App</a>
+    <a href="https://qa-automation.netlify.app" target="_blank">Q&A Automation ↗</a> · <a href="https://mock-bestbuy.netlify.app" target="_blank" style="color:#3b82f6;text-decoration:none">Bestbuy ↗</a> · <a href="https://mock-walm-art.netlify.app" target="_blank" style="color:#3b82f6;text-decoration:none">Walmart ↗</a> · <a href="https://mock-amazonde.netlify.app" target="_blank" style="color:#3b82f6;text-decoration:none">Amazon ↗</a>
   </div>
 </footer>
 
 <script>
-let API_BASE = localStorage.getItem('cx_api_base') || 'https://qa-automation-mock-api.up.railway.app';
+
+function resetApiUrl(){
+  localStorage.setItem('qa_api_base', DEFAULT_API);
+  API_BASE = DEFAULT_API;
+  document.getElementById('api-url-input').value = DEFAULT_API;
+  const res = document.getElementById('api-test-result');
+  if(res){ res.style.display='block'; res.style.cssText='display:block;padding:6px 8px;border-radius:3px;font-size:11px;margin-top:6px;background:#f0fdf4;color:#166534'; res.textContent='✅ Reset to default Railway URL. Edit the field above to use a different backend, then Save + Test.'; }
+  toast('URL reset to default Railway backend — edit anytime in Admin','ok');
+  log('URL reset to: '+DEFAULT_API);
+}
+
+// Timeout-safe fetch (avoids AbortSignal cloning error)
+async function fetchWithTimeout(url, options, ms){
+  ms = ms || 8000;
+  options = options || {};
+  return Promise.race([
+    fetch(url, options),
+    new Promise(function(_,reject){ setTimeout(function(){ reject(new Error('timeout ('+(ms/1000)+'s)')); }, ms); })
+  ]);
+}
+
+// ── API configuration — locked to correct Railway backend ──
+const DEFAULT_API = 'https://qna-dataextraction-production.up.railway.app'; // editable — change via Admin panel (Ctrl+Shift+A)
+// Pre-fill with DEFAULT_API if nothing saved, or if a known-broken URL is cached
+(function() {
+  const saved = localStorage.getItem('qa_api_base');
+  const bad = ['cx-agentx-mock-api', 'localhost', '/api', 'undefined', 'null', ''];
+  if (!saved || bad.some(b => saved.includes(b))) {
+    localStorage.setItem('qa_api_base', DEFAULT_API);
+  }
+})();
+let API_BASE = localStorage.getItem('qa_api_base') || DEFAULT_API;
 const RETAILER_ID = 'costco';
 let ALL_PRODUCTS=[],currentProduct=null,currentPage=1,currentFilter='all';
 let autoTimer=180,adminOpen=false;
@@ -398,51 +429,51 @@ function startAutoRefresh(){setInterval(async()=>{autoTimer--;if(autoTimer<=0){a
 async function loadAdminStats(){const d=await apiFetch('/api/admin/stats');if(!d)return;const r=d.data.by_retailer[RETAILER_ID]||{};document.getElementById('adm-products').textContent=r.products||0;document.getElementById('adm-questions').textContent=r.questions||0;document.getElementById('adm-answered').textContent=r.answered||0;document.getElementById('adm-unanswered').textContent=(r.questions||0)-(r.answered||0);}
 async function adminGenerate(){if(!currentProduct){toast('Open a product first','err');return;}const n=parseInt(document.getElementById('gen-count').value)||5;const d=await apiFetch('/api/questions/generate',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,count:n})});if(d){toast(`Generated ${d.generated}`);loadQuestions(1);loadAdminStats();}}
 async function adminGenerateAll(){const d=await apiFetch('/api/admin/generate-bulk',{method:'POST',body:JSON.stringify({retailer_id:RETAILER_ID,count_per_product:3})});if(d){toast(`Bulk: ${d.generated}`);loadAdminStats();}}
-function toggleAdmin(){adminOpen=!adminOpen;document.getElementById('admin-panel').classList.toggle('open',adminOpen);document.getElementById('api-url-input').value=API_BASE;if(adminOpen)loadAdminStats();}
+function toggleAdmin(){adminOpen=!adminOpen;document.getElementById('admin-panel').classList.toggle('open',adminOpen);document.getElementById('api-url-input').value=API_BASE||'';if(adminOpen)loadAdminStats();}
 function exportUrls(){window.open(API_BASE+'/api/export/urls','_blank');toast('Downloading Excel…');}
 function exportQA(){window.open(API_BASE+'/api/export/qa?retailer='+RETAILER_ID,'_blank');}
 document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&e.key==='A'){e.preventDefault();toggleAdmin();}});
 if(new URLSearchParams(window.location.search).get('admin')==='true')setTimeout(toggleAdmin,500);
 loadProducts();startAutoRefresh();
 
+
 function saveApiUrl(){
-  const val = document.getElementById('api-url-input').value.trim().replace(/\/+$/,'');
+  const val = (document.getElementById('api-url-input').value || '').trim().replace(/\/+$/,'');
   if(!val){ toast('Enter a URL first','err'); return; }
   API_BASE = val;
-  localStorage.setItem('cx_api_base', val);
-  toast('API URL saved!','ok');
-  adLog('API URL saved: '+val);
+  localStorage.setItem('qa_api_base', val);
+  document.getElementById('api-test-result').style.display='none';
+  toast('API URL saved — click Test to verify','ok');
+  log('API URL saved: '+val);
 }
 
 async function testApiUrl(){
   const btn = document.getElementById('test-api-btn');
   const res = document.getElementById('api-test-result');
-  const url = document.getElementById('api-url-input').value.trim().replace(/\/+$/,'');
+  const url = (document.getElementById('api-url-input').value || '').trim().replace(/\/+$/,'');
   if(!url){ toast('Enter a URL first','err'); return; }
   btn.textContent = '⏳ Testing...'; btn.disabled = true;
   res.style.display = 'block';
+  res.style.cssText += ';display:block;padding:6px 8px;border-radius:3px;font-size:11px;margin-top:6px';
   res.style.background = '#f0f9ff'; res.style.color = '#0c4a6e';
-  res.textContent = 'Connecting...';
+  res.textContent = 'Connecting to '+url+' ...';
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(()=>ctrl.abort(), 8000);
-    const r = await fetch(url+'/api/health', {signal:ctrl.signal});
-    clearTimeout(timer);
+    const r = await fetchWithTimeout(url+'/api/health', {}, 8000);
     if(!r.ok) throw new Error('HTTP '+r.status);
     const d = await r.json();
     res.style.background = '#f0fdf4'; res.style.color = '#166534';
-    res.textContent = '✅ Connected! '+( d.message||'API healthy')+' — '+(d.products||'?')+' products';
+    res.textContent = '✅ Connected! '+(d.message||'API healthy')+' — '+(d.products||'?')+' products available';
     API_BASE = url;
-    localStorage.setItem('cx_api_base', url);
-    toast('Connected!','ok');
-    adLog('API test OK: '+url);
+    localStorage.setItem('qa_api_base', url);
+    toast('Connected! Loading products...','ok');
+    log('API test OK: '+url);
     loadProducts();
   } catch(e){
-    const msg = e.name==='AbortError'?'timeout (8s)':e.message;
+    const msg = e.name==='AbortError'?'timeout (8s) — is Railway deployed?':e.message;
     res.style.background = '#fef2f2'; res.style.color = '#991b1b';
-    res.textContent = '❌ Failed: '+msg+'. Check URL and CORS.';
+    res.textContent = '❌ '+msg;
     toast('Connection failed','err');
-    adLog('API test FAIL: '+msg);
+    log('API test FAIL: '+msg);
   }
   btn.textContent = '🔗 Test'; btn.disabled = false;
 }
