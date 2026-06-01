@@ -1,6 +1,6 @@
 'use strict';
 // ═══════════════════════════════════════════════════════════════
-// CX AgentX — Mock Retailer API Server
+// Q&A Automation — Mock Retailer API Server
 // Deploy to Railway · Works standalone with in-memory data
 // Optionally connects to Supabase for persistence
 // ═══════════════════════════════════════════════════════════════
@@ -180,7 +180,7 @@ function makeQuestion(product, qa, overrides = {}) {
 function seedQuestions() {
   PRODUCTS.forEach(product => {
     const bank = QB[product.category] || QB.tv;
-    const count = Math.floor(Math.random() * 4) + 4;
+    const count = 2; // 2 questions per product on startup
     const shuffled = [...bank].sort(() => Math.random() - 0.5).slice(0, count);
     shuffled.forEach(qa => QUESTIONS.push(makeQuestion(product, qa)));
   });
@@ -199,7 +199,7 @@ app.get('/api/health', (_req, res) => res.json({
 
 // API docs
 app.get('/api', (_req, res) => res.json({
-  name: 'CX AgentX Mock Retailer API v1.0',
+  name: 'Q&A Automation Mock Retailer API v1.0',
   endpoints: [
     'GET  /api/health',
     'GET  /api/retailers',
@@ -429,19 +429,19 @@ function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + m
 
 // ─── AUTO Q GENERATION (every 3 mins) ────────────────────────
 setInterval(() => {
-  const picks = [...PRODUCTS].sort(()=>Math.random()-0.5).slice(0,4);
-  picks.forEach(product => {
-    const bank = QB[product.category] || QB.tv;
-    const qa = bank[Math.floor(Math.random()*bank.length)];
-    QUESTIONS.push(makeQuestion(product, qa, { daysAgo:0, ai_generated:true }));
-  });
-  console.log(`🔄 Auto-generated 4 questions — total: ${QUESTIONS.length}`);
-}, 3 * 60 * 1000);
+  const product = PRODUCTS[Math.floor(Math.random()*PRODUCTS.length)];
+  const bank = QB[product.category] || QB.tv;
+  const qa = bank[Math.floor(Math.random()*bank.length)];
+  if(!QUESTIONS.find(q=>q.question_text===qa.question&&q.product_id===product.id)){
+    QUESTIONS.push(makeQuestion(product, qa, { daysAgo:0, ai_generated:false }));
+    console.log(`🔄 Auto-added 1 question — total: ${QUESTIONS.length}`);
+  }
+}, 10 * 60 * 1000); // every 10 minutes, 1 question
 
 // ─── START ────────────────────────────────────────────────────
 seedQuestions();
 app.listen(PORT, () => {
-  console.log(`\n🚀 CX AgentX Mock API on port ${PORT}`);
+  console.log(`\n🚀 Q&A Automation Mock API running on port ${PORT}`);
   console.log(`   Products: ${PRODUCTS.length}  Questions: ${QUESTIONS.length}`);
   console.log(`   Docs: http://localhost:${PORT}/api\n`);
 });
