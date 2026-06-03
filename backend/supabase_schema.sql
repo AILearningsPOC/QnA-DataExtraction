@@ -105,6 +105,12 @@ ALTER TABLE answers        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE knowledge_base ENABLE ROW LEVEL SECURITY;
 
 -- Allow all operations (POC — tighten for production)
+-- Drop first in case they already exist from a previous run
+DROP POLICY IF EXISTS "allow_all" ON products;
+DROP POLICY IF EXISTS "allow_all" ON questions;
+DROP POLICY IF EXISTS "allow_all" ON answers;
+DROP POLICY IF EXISTS "allow_all" ON knowledge_base;
+
 CREATE POLICY "allow_all" ON products       FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "allow_all" ON questions      FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "allow_all" ON answers        FOR ALL USING (true) WITH CHECK (true);
@@ -116,6 +122,7 @@ RETURNS TRIGGER AS $$
 BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_kb_updated_at ON knowledge_base;
 CREATE TRIGGER trg_kb_updated_at
   BEFORE UPDATE ON knowledge_base
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
