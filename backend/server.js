@@ -162,20 +162,26 @@ async function callClaude(prompt,systemPrompt,maxTokens){
 }
 
 async function enrichQuestion(questionText,productTitle,productCategory){
-  const sys=`You are a customer question analyzer for Hisense electronics. Respond ONLY with valid JSON, no markdown, no explanation. Keys: language (ISO 639-1), language_name (full name), category (one of: product_info pricing warranty compatibility usage complaint returns other), sentiment (positive neutral negative), needs_review (boolean), review_reason (string or null)`;
-  const prompt=`Product: ${productTitle} (${productCategory})\nQuestion: "${questionText}"\nReturn JSON.`;
+  const sys=`You are a customer question analyzer for Hisense electronics. Respond ONLY with a valid JSON object. No markdown fences, no explanation, no extra text. Required keys: language (ISO 639-1 code), language_name (full language name in English), category (one of: product_info pricing warranty compatibility usage complaint returns other), sentiment (positive neutral or negative), needs_review (true or false), review_reason (string explaining why, or null)`;
+  const prompt=`Product: ${productTitle} (${productCategory})\nCustomer question: "${questionText}"\nDetect language and analyze. Respond with JSON only.`;
   try{
-    const raw=await callClaude(prompt,sys,200);
-    const r=JSON.parse(raw.replace(/```json?|```/g,'').trim());
+    const raw=await callClaude(prompt,sys,250);
+    // Strip any markdown fences, leading/trailing whitespace
+    const cleaned=raw.replace(/```json?/g,'').replace(/```/g,'').trim();
+    // Extract JSON object (handles cases where Claude adds text around it)
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if(!match) throw new Error('No JSON object in response');
+    const r=JSON.parse(match[0]);
     const cats=['product_info','pricing','warranty','compatibility','usage','complaint','returns','other'];
     const sents=['positive','neutral','negative'];
-    const isNonEn=r.language&&r.language!=='en';
+    const lang = (r.language||'en').toLowerCase().replace(/[^a-z]/g,'').substring(0,5);
+    const isNonEn = lang && lang!=='en';
     return{
-      language:r.language||'en', language_name:r.language_name||'English',
+      language:lang, language_name:r.language_name||'English',
       category:cats.includes(r.category)?r.category:'product_info',
       sentiment:sents.includes(r.sentiment)?r.sentiment:'neutral',
-      needs_review:isNonEn||!!r.needs_review,
-      review_reason:r.review_reason||(isNonEn?'Non-English question — requires human review':null)
+      needs_review:isNonEn||r.needs_review===true,
+      review_reason:r.review_reason||(isNonEn?`Non-English question (${r.language_name||lang}) — requires human review`:null)
     };
   }catch(e){console.warn('Enrich fail:',e.message);return{language:'en',language_name:'English',category:'product_info',sentiment:'neutral',needs_review:false,review_reason:null};}
 }
@@ -224,8 +230,11 @@ async function dbGetProducts(filters){
 
 async function dbGetProduct(id){
   if(!DB_READY) return MEM_PRODUCTS.find(p=>p.id===id||p.sku===id)||null;
-  const{data}=await db.from('products').select('*').or(`id.eq.${id},sku.eq.${id}`).maybeSingle();
-  return data||null;
+  // Try UUID lookup first, then SKU — avoids Supabase UUID cast error with .or()
+  const{data:byId}=await db.from('products').select('*').eq('id',id).maybeSingle();
+  if(byId) return byId;
+  const{data:bySku}=await db.from('products').select('*').eq('sku',id).maybeSingle();
+  return bySku||null;
 }
 
 async function dbGetQuestions(filters,page,limit){
@@ -429,6 +438,15 @@ app.post('/api/questions/:id/answer',async(req,res)=>{
   try{
     const{answer_text,answered_by,is_approved}=req.body||{};
     if(!answer_text) return res.status(400).json({success:false,error:'answer_text required'});
+    // Verify question exists
+    let questionExists=false;
+    if(DB_READY){
+      const{data}=await db.from('questions').select('id').eq('id',req.params.id).maybeSingle();
+      questionExists=!!data;
+    } else {
+      questionExists=!!MEM_QUESTIONS.find(x=>x.id===req.params.id);
+    }
+    if(!questionExists) return res.status(404).json({success:false,error:'Question not found'});
     const aData={question_id:req.params.id,answer_text,answered_by:answered_by||'HisenseExpert',
       answered_at:new Date().toISOString(),is_approved:is_approved!==false,kb_sources:[]};
     if(!DB_READY) aData.id=uuidv4();
