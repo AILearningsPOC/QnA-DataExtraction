@@ -430,8 +430,11 @@ async function apiFetch(path, opts={}){
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     return await r.json();
   } catch(e) {
-    log(`ERROR: ${e.message}`, 'e');
-    toast('API error — check console','err');
+    const friendly = e.message==='Failed to fetch'
+      ? 'Cannot reach backend — check API URL in Admin panel (Ctrl+Shift+A)'
+      : e.message;
+    log(`ERROR: ${friendly}`, 'e');
+    toast(friendly.substring(0,60), 'err');
     return null;
   }
 }
@@ -440,7 +443,7 @@ async function apiFetch(path, opts={}){
 async function loadProducts(){
   const data = await apiFetch(`/api/products?retailer=${RETAILER_ID}`);
   if(!data){ document.getElementById('product-grid').innerHTML='<p style="color:red;padding:20px">Could not load products. Check API_BASE URL in Admin panel.</p>'; return; }
-  ALL_PRODUCTS = data.data;
+  ALL_PRODUCTS = (data && Array.isArray(data.data)) ? data.data : (Array.isArray(data) ? data : []);
   renderProducts();
   loadAdminStats();
 }
@@ -485,10 +488,11 @@ async function loadProductDetail(id){
   document.getElementById('listing-view').style.display='none';
   document.getElementById('detail-view').style.display='block';
   const data = await apiFetch(`/api/products/${id}`);
-  if(!data) return;
+  if(!data||!data.data){log('Product not found','e');return;}
   const p = data.data;
+  if(!p||!p.id){log('Invalid product data received','e');return;}
   currentProduct = p;
-  document.getElementById('detail-img').src = p.image;
+  document.getElementById('detail-img').src = p.image||'';
   document.getElementById('detail-img').alt = p.title;
   document.getElementById('detail-title').textContent = p.title;
   document.getElementById('detail-model').textContent = `SKU: ${p.sku} · Model: ${p.sku}`;
@@ -522,12 +526,14 @@ function switchTab(name, btn){
 
 // ── Q&A ───────────────────────────────────────
 async function loadQuestions(page=1){
+  if(!currentProduct||!currentProduct.id){ log('No product selected','e'); return; }
   if(!currentProduct) return;
   currentPage=page;
   const sort = document.getElementById('qa-sort').value;
   const unanswered = document.getElementById('filter-unanswered').checked;
   const status = unanswered ? '&status=unanswered' : '';
   document.getElementById('qa-list').innerHTML=`<div class="qa-loading"><div class="spinner"></div>Loading questions…</div>`;
+  if(!currentProduct||!currentProduct.id){ log('No product selected','e'); return; }
   const data = await apiFetch(`/api/products/${currentProduct.id}/questions?sort=${sort}&page=${page}&limit=8${status}`);
   if(!data) return;
   document.getElementById('qa-total-count').textContent = `${data.total} question${data.total!==1?'s':''}`;

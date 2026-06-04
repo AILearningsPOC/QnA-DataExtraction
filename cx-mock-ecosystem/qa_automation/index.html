@@ -493,6 +493,7 @@
       </div>
 
       <div class="sr" style="grid-template-columns:repeat(4,1fr)">
+        <div class="sc"><span class="sbg bg-info">TOTAL</span><div class="si">📋</div><div class="sv c-bl" id="a-total">0</div><div class="sl">Total Questions</div></div>
         <div class="sc"><span class="sbg bg-warn">PENDING</span><div class="si">⏳</div><div class="sv c-am" id="a-pending">0</div><div class="sl">Awaiting Answer</div></div>
         <div class="sc"><span class="sbg bg-act">READY</span><div class="si">✅</div><div class="sv c-gr" id="a-ready">0</div><div class="sl">Ready to Post</div></div>
         <div class="sc"><span class="sbg bg-info">POSTED</span><div class="si">📤</div><div class="sv c-bl" id="a-posted">0</div><div class="sl">Submitted</div></div>
@@ -874,6 +875,35 @@ async function fetchWithTimeout(url, options, ms) {
     })
   ]);
 }
+// ─── CENTRALIZED ERROR & NULL HELPERS ────────────────────────
+// Show error to user — never silently swallow
+function showErr(context, err) {
+  const msg = err && err.message ? err.message : String(err || 'Unknown error');
+  console.error('[' + context + ']', msg);
+  toast(context + ': ' + msg.substring(0, 80), 'e');
+}
+
+// Safe property access — avoids TypeError on null chains
+function safeGet(obj, ...keys) {
+  let cur = obj;
+  for (const k of keys) {
+    if (cur == null || cur === undefined) return undefined;
+    cur = cur[k];
+  }
+  return cur;
+}
+
+// Safe array — always returns array, never throws
+function safeArr(val) {
+  return Array.isArray(val) ? val : [];
+}
+
+// Validate API response has expected shape
+function isApiOk(data) {
+  return data && data.success === true && data.data !== undefined;
+}
+
+
 // ═══════════════════════════════════════════════
 // CONFIG — all tuneable, no hardcoded values
 // ═══════════════════════════════════════════════
@@ -1304,8 +1334,8 @@ async function scrapeViaApi(urls){
       const data = await resp.json();
       // Backend returns { success:true, count:N, data:[...] }
       const questions = Array.isArray(data) ? data
-                      : Array.isArray(data.data) ? data.data
-                      : (data.questions || []);
+                      : Array.isArray(safeGet(data,'data')) ? data.data
+                      : safeArr(data && data.questions);
       const newQs = questions
         .filter(q => !q.ai_generated && !q.answered && !q.answer_text)
         .filter(q => !S.questions.find(e => e.apiId && e.apiId === q.id))
@@ -1765,7 +1795,7 @@ async function testApiConnection(){
   } catch(err){
     const msg=err.name==='AbortError'?'timeout (8s)':err.message;
     banner.style.cssText='display:block;background:#fee2e2;color:#991b1b;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:500';
-    banner.textContent=`❌ Failed: ${msg}. Check URL and CORS settings on backend.`;
+    banner.textContent=`❌ ${msg==='Failed to fetch'?'Cannot reach backend — check the Railway URL is correct and the service is running':msg}. If Railway just deployed, wait 30s and try again.`;
   }
   btn.disabled=false; btn.innerHTML='🔗 Test Connection';
 }
@@ -1780,8 +1810,12 @@ async function loadUrlsFromApi(){
     const data=await resp.json();
     // Backend returns { success:true, data:[...] } or { success:true, count:N, data:[...] }
     const products = Array.isArray(data) ? data
-                   : Array.isArray(data.data) ? data.data
-                   : (data.products || []);
+                   : Array.isArray(safeGet(data,'data')) ? data.data
+                   : safeArr(data && data.products);
+    if(!products.length){
+      addLog('scrape-log','📥 Load Q&A: API returned 0 products. Check the backend is seeded.','w');
+      toast('No products returned from API','w');
+    }
     let added=0;
     products.forEach(p=>{
       if(!p.id) return;
@@ -1860,8 +1894,13 @@ function renderAnswerTable(){
   const filtered=rf?qs.filter(q=>q.retailer===rf):qs;
   document.getElementById('a-total').textContent=qs.length;
   const tb=document.getElementById('ans-tbody');
-  if(!filtered.length){tb.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text3)">No questions in queue.</td></tr>';return;}
+  if(!filtered.length){
+    const hasApi = !!CFG.apiBaseUrl;
+    tb.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text3)">'+(S.questions.length?'No questions match current filter.':hasApi?'Queue empty — go to Q&A Scraper and click ▶ Run Now to fetch questions.':'Queue empty — configure API in ⚙️ Config then use 📥 Load Q&A to import products.')+'</td></tr>';
+    return;
+  }
   tb.innerHTML=filtered.map((q,i)=>{
+    if(!q) return '';
     const conf = q.ai_confidence ? Math.round(parseFloat(q.ai_confidence)*100) : (q.confidence_pct||0);
     const isReview = q.status==='review';
     return `<tr style="${isReview?'background:#fef2f2':''}"">
@@ -1904,14 +1943,15 @@ function openAnswerModal(qid){
 async function genRAG(qid){
   if(!CFG.apiBaseUrl){ toast('Set API URL in Config first','w'); return; }
   const q = S.questions.find(x=>x.id===qid);
-  if(!q||!q.apiId){ toast('Question must have an API ID — scrape from API first','w'); return; }
+  if(!q){ toast('Question not found in local queue','w'); return; }
+  if(!q.apiId){ toast('This question has no API ID — use 📥 Load Q&A then ▶ Run Now to fetch live questions first','w'); return; }
   toast('Generating AI+RAG answer...');
   try{
     const resp = await fetchWithTimeout(`${CFG.apiBaseUrl}/api/questions/${q.apiId}/ai-answer`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})},15000);
     if(!resp.ok) throw new Error('HTTP '+resp.status);
     const data = await resp.json();
     if(data.success && data.data){
-      const r = data.data;
+      const r = safeGet(data,'data') || {};
       q.answer = r.answer || '';
       q.ai_confidence = r.confidence || 0;
       q.confidence_pct = r.confidence_pct || 0;
@@ -1948,10 +1988,11 @@ async function refreshReviewQueue(){
   try{
     const resp = await fetchWithTimeout(`${CFG.apiBaseUrl}/api/admin/questions?status=review&limit=100`,{},8000);
     const data = await resp.json();
-    if(data.success){
-      // Merge API questions into S.questions for local tracking
-      (data.data||[]).forEach(aq=>{
-        const existing = S.questions.find(q=>q.apiId===aq.id);
+    if(data && data.success){
+      const reviewData = safeArr(safeGet(data,'data'));
+      reviewData.forEach(aq=>{
+        if(!aq||!aq.id) return;
+          const existing = S.questions.find(q=>q.apiId===aq.id);
         if(!existing){
           S.questions.push({
             id:uid(), apiId:aq.id, apiProductId:aq.product_id,
@@ -1972,7 +2013,7 @@ async function refreshReviewQueue(){
         }
       });
     }
-  }catch(e){ console.warn('Review refresh:',e.message); }
+  }catch(e){ showErr('Review Queue refresh',e); }
   REVIEW_ITEMS = S.questions.filter(q=>q.status==='review');
   renderReviewTable();
   // Update badge
@@ -1994,8 +2035,13 @@ function renderReviewTable(){
   const badge=document.getElementById('review-badge');
   if(badge){badge.textContent=REVIEW_ITEMS.length;badge.style.display=REVIEW_ITEMS.length?'inline':'none';}
   const tb=document.getElementById('rv-tbody');
-  if(!items.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text3)">'+(REVIEW_ITEMS.length?'No items match the filter.':'No items in review queue. Great work! ✅')+'</td></tr>';return;}
+  if(!items.length){
+    const msg = REVIEW_ITEMS.length ? 'No items match the current filter — try clearing the filters.' : (!CFG.apiBaseUrl ? 'Configure API in ⚙️ Config first, then click ↺ Refresh.' : 'No items in review queue. ✅ All questions have been processed!');
+    tb.innerHTML='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text3)">'+msg+'</td></tr>';
+    return;
+  }
   tb.innerHTML=items.map((q,i)=>{
+    if(!q) return '';
     const conf=q.confidence_pct||Math.round((q.ai_confidence||0)*100);
     return `<tr>
       <td style="font-size:16px">${langFlag(q.language||'en')} <span style="font-size:10px;color:var(--text3)">${q.language_name||'English'}</span></td>
@@ -2036,7 +2082,7 @@ async function approveReviewItem(){
   const q = currentReviewItem;
   const ans = document.getElementById('rv-modal-answer').value.trim();
   const addToKB = document.getElementById('rv-modal-add-kb').checked;
-  if(!ans){ toast('Please enter an answer before approving','w'); return; }
+  if(!ans || !ans.trim()){ toast('Please enter an answer before approving','w'); return; }
   q.answer = ans; q.status = 'answered'; q.postedAt = null;
   // If API connected, approve on backend
   if(CFG.apiBaseUrl && q.apiId){
@@ -2084,7 +2130,7 @@ async function loadKBEntries(){
     KB_ENTRIES = data.data || [];
     renderKBTable();
     addLog('scrape-log',`📚 Loaded ${KB_ENTRIES.length} KB entries from API`,'s');
-  }catch(e){ toast('KB load error: '+e.message,'e'); }
+  }catch(e){ showErr('Knowledge Base load',e); addLog('scrape-log','KB load failed: '+e.message,'e'); }
 }
 
 function renderKBTable(){
@@ -2100,7 +2146,7 @@ function renderKBTable(){
   
   const tb=document.getElementById('kb-tbody');
   if(!entries.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">'+(!KB_ENTRIES.length?'Connect API and click Refresh to load knowledge base entries.':'No entries match your filter.')+'</td></tr>';return;}
-  tb.innerHTML=entries.map(e=>`<tr>
+  tb.innerHTML=entries.filter(Boolean).map(e=>`<tr>
     <td style="max-width:200px;font-weight:600;font-size:13px">${e.title}</td>
     <td>${catBadge(e.kb_category||'faq')}</td>
     <td style="font-size:11px;color:var(--text3)">${e.product_category||'All'}</td>
@@ -2178,7 +2224,7 @@ async function loadDashboardStats(){
     const resp = await fetchWithTimeout(`${CFG.apiBaseUrl}/api/admin/stats`,{},8000);
     const data = await resp.json();
     if(!data.success) return;
-    const d = data.data;
+    const d = safeGet(data,'data') || {};
     // New stat cards
     document.getElementById('dash-review').textContent = d.review||0;
     document.getElementById('dash-kb').textContent = d.kb_entries||0;
@@ -2197,14 +2243,14 @@ async function loadDashboardStats(){
     // Update review badge
     const badge=document.getElementById('review-badge');
     if(badge){badge.textContent=d.review||0;badge.style.display=(d.review>0)?'inline':'none';}
-  }catch(e){ console.warn('Dashboard stats error:',e.message); }
+  }catch(e){ showErr('Dashboard stats',e); }
 }
 
 function renderCategoryChart(cats){
   const el=document.getElementById('dash-category-chart');
   if(!el) return;
   const total=Object.values(cats).reduce((a,b)=>a+b,0)||1;
-  if(!Object.keys(cats).length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px">No data yet</div>';return;}
+  if(!cats||!Object.keys(cats).length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px">No category data yet — questions will appear here after scraping.</div>';return;}
   el.innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
     <div style="margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
@@ -2221,7 +2267,7 @@ function renderSentimentChart(sents){
   const el=document.getElementById('dash-sentiment-chart');
   if(!el) return;
   const total=Object.values(sents).reduce((a,b)=>a+b,0)||1;
-  if(!Object.keys(sents).length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px">No data yet</div>';return;}
+  if(!sents||!Object.keys(sents).length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px">No sentiment data yet — questions will appear here after AI enrichment.</div>';return;}
   const order=['positive','neutral','negative'];
   el.innerHTML=order.filter(k=>sents[k]).map(k=>`
     <div style="margin-bottom:8px">

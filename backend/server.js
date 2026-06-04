@@ -47,6 +47,24 @@ app.use((req,_res,next)=>{
   next();
 });
 
+// ─── CENTRALIZED HELPERS ──────────────────────────────────────
+// Consistent error response
+function errRes(res, status, message) {
+  if (!res.headersSent) res.status(status).json({ success: false, error: message });
+}
+
+// Safe property accessor
+function safe(obj, ...keys) {
+  return keys.reduce((cur, k) => (cur != null ? cur[k] : undefined), obj);
+}
+
+// Validate required body fields — returns error string or null
+function validate(body, ...fields) {
+  for (const f of fields) if (!body[f] && body[f] !== 0) return 'Missing required field: ' + f;
+  return null;
+}
+
+
 const RETAILERS=[
   {id:'bestbuy',name:'Best Buy',theme:'#003087',accent:'#FFE000',base_url:process.env.BESTBUY_URL||'https://mock-bestbuy.netlify.app'},
   {id:'walmart',name:'Walmart', theme:'#0071CE',accent:'#FFC220',base_url:process.env.WALMART_URL||'https://mock-walm-art.netlify.app'},
@@ -150,10 +168,12 @@ function makeQRow(product,qa){
 
 async function callClaude(prompt,systemPrompt,maxTokens){
   if(!ANTHROPIC_KEY) throw new Error('ANTHROPIC_API_KEY not configured');
+  // Use model from env var for flexibility, default to claude-haiku-4-5
+  const model = process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001';
   const resp=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01'},
-    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens||500,
+    body:JSON.stringify({model,max_tokens:maxTokens||500,
       system:systemPrompt,messages:[{role:'user',content:prompt}]})
   });
   if(!resp.ok){const e=await resp.text();throw new Error('Claude '+resp.status+': '+e);}
@@ -183,7 +203,11 @@ async function enrichQuestion(questionText,productTitle,productCategory){
       needs_review:isNonEn||r.needs_review===true,
       review_reason:r.review_reason||(isNonEn?`Non-English question (${r.language_name||lang}) — requires human review`:null)
     };
-  }catch(e){console.warn('Enrich fail:',e.message);return{language:'en',language_name:'English',category:'product_info',sentiment:'neutral',needs_review:false,review_reason:null};}
+  }catch(e){
+    console.error('[Enrichment Error]',e.message);
+    // Return safe defaults — question will be processable even if AI enrichment fails
+    return{language:'en',language_name:'English',category:'product_info',sentiment:'neutral',needs_review:false,review_reason:null,_enrichError:e.message};
+  }
 }
 
 async function searchKB(questionText,category,productCategory){
@@ -194,8 +218,11 @@ async function searchKB(questionText,category,productCategory){
   }).slice(0,5);
   const{data}=await db.from('knowledge_base').select('*').eq('is_active',true)
     .or(`kb_category.eq.${category},product_category.eq.${productCategory},product_category.is.null`).limit(20);
-  if(!data||!data.length) return[];
-  return data.map(e=>({...e,score:terms.filter(t=>(e.title+' '+e.content).toLowerCase().includes(t)).length}))
+  if(!Array.isArray(data)||!data.length) return[];
+  return data.map(e=>({
+    ...e,
+    score:terms.filter(t=>((e.title||'')+' '+(e.content||'')).toLowerCase().includes(t)).length
+  }))
     .filter(e=>e.score>0).sort((a,b)=>b.score-a.score).slice(0,5);
 }
 
@@ -205,12 +232,19 @@ async function generateRagAnswer(question,product,kbEntries){
   const prompt=`Product: ${product.title}\nSpecs: ${JSON.stringify(product.specs||{})}\n\nKnowledge Base:\n${ctx}\n\nQuestion: "${question}"\n\nGenerate a helpful answer. If KB is insufficient, set confidence < 0.5 and needs_review true.`;
   try{
     const raw=await callClaude(prompt,sys,400);
-    const r=JSON.parse(raw.replace(/```json?|```/g,'').trim());
+    const cleaned=raw.replace(/```json?|```/g,'').trim();
+    const match=cleaned.match(/\{[\s\S]*\}/);
+    if(!match) throw new Error('No JSON object in Claude response');
+    const r=JSON.parse(match[0]);
+    if(!r.answer||typeof r.answer!=='string') throw new Error('Claude response missing answer field');
     const conf=Math.min(1,Math.max(0,parseFloat(r.confidence)||0.5));
     return{answer:r.answer||'',confidence:Math.round(conf*100)/100,confidence_pct:Math.round(conf*100),
       needs_review:conf<AI_THRESHOLD||!!r.needs_review,
       review_reason:r.review_reason||(conf<AI_THRESHOLD?`Low confidence (${Math.round(conf*100)}%)`:null)};
-  }catch(e){console.warn('RAG fail:',e.message);return{answer:'',confidence:0,confidence_pct:0,needs_review:true,review_reason:'AI error: '+e.message};}
+  }catch(e){
+    console.error('[RAG Error]',e.message);
+    return{answer:'Unable to generate answer — please review manually.',confidence:0,confidence_pct:0,needs_review:true,review_reason:'AI generation error: '+e.message};
+  }
 }
 
 async function dbGetProducts(filters){
@@ -255,9 +289,15 @@ async function dbGetQuestions(filters,page,limit){
   if(filters.status)      q=q.eq('status',filters.status);
   if(filters.category)    q=q.eq('category',filters.category);
   if(filters.search)      q=q.ilike('question_text','%'+filters.search+'%');
-  const{data,count,error}=await q.order('asked_at',{ascending:false}).range((page-1)*limit,page*limit-1);
-  if(error) throw error;
-  const flat=(data||[]).map(row=>{const ans=row.answers&&row.answers.length?row.answers[0]:null;const{answers,...rest}=row;return{...rest,answer:ans};});
+  const from=(page-1)*limit;
+  const to=page*limit-1;
+  const{data,count,error}=await q.order('asked_at',{ascending:false}).range(from,to);
+  // Supabase throws "Requested range not satisfiable" when page is beyond data size — return empty
+  if(error){
+    if(error.message&&error.message.includes('range not satisfiable')) return{data:[],total:0};
+    throw error;
+  }
+  const flat=(Array.isArray(data)?data:[]).map(row=>{const ans=row.answers&&row.answers.length?row.answers[0]:null;const{answers,...rest}=row;return{...rest,answer:ans};});
   return{data:flat,total:count||0};
 }
 
@@ -326,8 +366,9 @@ async function seedDatabase(){
   if(qErr){console.error('Question seed error:',qErr.message);return;}
   const toAnswer=insertedQs.filter(()=>Math.random()>0.4);
   const ansRows=toAnswer.map(q=>{
-    const p=prods.find(x=>x.id===q.product_id);
-    const qa=(QB[p?.category||'tv']||[]).find(x=>x.q===q.question_text)||{a:'Thank you for your question!'};
+    const p=prods.find(x=>x&&x.id===q.product_id);
+    const bank=QB[(p&&p.category)||'tv']||QB.tv||[];
+    const qa=bank.find(x=>x&&x.q===q.question_text)||{a:'Thank you for your question! Our team will review and respond shortly.'};
     return{question_id:q.id,answer_text:qa.a,answered_by:'HisenseExpert',
       answered_at:new Date(new Date(q.asked_at).getTime()+rand(1,5)*86400000).toISOString(),is_approved:true};
   });
@@ -410,7 +451,7 @@ app.post('/api/questions/add',async(req,res)=>{
       try{const e=await enrichQuestion(question_text,product.title,product.category);
         Object.assign(qData,{language:e.language,language_name:e.language_name,category:e.category,sentiment:e.sentiment});
         if(e.needs_review){qData.status='review';qData.review_reason=e.review_reason;}
-      }catch(err){console.warn('Enrich skip:',err.message);}
+      }catch(err){ console.error('[Enrich skip]',err.message); }
     }
     const saved=await dbInsert('questions',qData);
     res.json({success:true,data:saved});
@@ -423,7 +464,8 @@ app.post('/api/questions/generate',async(req,res)=>{
     const product=await dbGetProduct(product_id);
     if(!product) return res.status(404).json({success:false,error:'Product not found'});
     const bank=QB[product.category]||QB.tv;
-    const toAdd=[...bank].sort(()=>Math.random()-0.5).slice(0,Math.min(parseInt(count)||3,bank.length));
+    const _cnt=parseInt(count); const _n=isNaN(_cnt)||_cnt<0?3:_cnt;
+    const toAdd=[...bank].sort(()=>Math.random()-0.5).slice(0,Math.min(_n,bank.length));
     const inserted=[];
     for(const qa of toAdd){
       const row=makeQRow(product,qa); row.ai_generated=true;
@@ -486,17 +528,37 @@ app.patch('/api/questions/:id/approve',async(req,res)=>{
       if(q&&q.answer){q.answer.is_approved=true;q.status='answered';}
       return res.json({success:true,added_to_kb:false});
     }
-    await db.from('answers').update({is_approved:true,approved_by:approved_by||'Operator',approved_at:new Date().toISOString()}).eq('question_id',req.params.id);
+    // Update answer approval
+    await db.from('answers').update({
+      is_approved:true,
+      approved_by:approved_by||'Operator',
+      approved_at:new Date().toISOString()
+    }).eq('question_id',req.params.id);
+    // Update question status
     await db.from('questions').update({status:'answered'}).eq('id',req.params.id);
+    
+    let added_to_kb = false;
     if(add_to_kb){
-      const{data:q}=await db.from('questions').select('*,answers(*)').eq('id',req.params.id).single();
-      const ans=q&&q.answers&&q.answers[0];
-      if(q&&ans){
-        await db.from('knowledge_base').insert({title:q.question_text.substring(0,80),content:ans.answer_text,
-          kb_category:q.category||'faq',product_category:null,tags:['approved_answer'],source:'approved_answer',is_active:true});
+      // Fetch question and answer separately (more reliable than join)
+      const[{data:q},{data:ans}]=await Promise.all([
+        db.from('questions').select('*').eq('id',req.params.id).maybeSingle(),
+        db.from('answers').select('*').eq('question_id',req.params.id).maybeSingle()
+      ]);
+      if(q&&ans&&ans.answer_text){
+        const{error}=await db.from('knowledge_base').insert({
+          title:q.question_text.substring(0,80),
+          content:ans.answer_text,
+          kb_category:q.category||'faq',
+          product_category:null,
+          tags:['approved_answer'],
+          source:'approved_answer',
+          is_active:true
+        });
+        if(!error) added_to_kb=true;
+        else console.error('[KB insert]', error.message);
       }
     }
-    res.json({success:true,added_to_kb:!!add_to_kb});
+    res.json({success:true,added_to_kb});
   }catch(e){res.status(500).json({success:false,error:e.message});}
 });
 
@@ -612,21 +674,24 @@ app.get('/api/export/qa',async(req,res)=>{
 });
 
 app.get('/api/logs',(req,res)=>{
-  const limit=parseInt(req.query.limit)||100;
-  res.json({success:true,count:LOGS.length,data:LOGS.slice(0,limit)});
+  try{
+    const limit=Math.min(parseInt(req.query.limit)||100,500);
+    res.json({success:true,count:LOGS.length,data:LOGS.slice(0,limit)});
+  }catch(e){res.status(500).json({success:false,error:e.message});}
 });
 
 setInterval(async()=>{
   try{
     const products=await dbGetProducts();
-    if(!products.length) return;
+    if(!products||!products.length) return;
     const p=products[rand(0,products.length-1)];
+    if(!p||!p.id) return;
     const bank=QB[p.category]||QB.tv;
     const qa=bank[rand(0,bank.length-1)];
     const row=makeQRow(p,qa);
     if(!DB_READY) row.id=uuidv4();
     await dbInsert('questions',row);
-  }catch(e){console.warn('Auto-gen error:',e.message);}
+  }catch(e){console.error('[AutoGen]', e.message);}
 },10*60*1000);
 
 seedDatabase().then(()=>{
