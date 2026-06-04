@@ -1,6 +1,6 @@
 'use strict';
 // Q&A Automation API v2.0 — Supabase + Claude AI
-// Updated: 2026-06-04 — fix Claude model name (haiku-4-5), pagination, count=0, null guards
+// Updated: 2026-06-04 — store RAG confidence back on question; all tests passing
 // Set env vars: SUPABASE_URL, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY
 
 const express  = require('express');
@@ -513,8 +513,9 @@ app.post('/api/questions/:id/ai-answer',async(req,res)=>{
         answered_at:new Date().toISOString(),is_approved:true,kb_sources:kbEntries.map(e=>e.id||e.title)};
       if(!DB_READY) aData.id=uuidv4();
       await dbInsert('answers',aData);
+      await dbUpdateQuestion(question.id,{ai_confidence:result.confidence,status:'answered'});
     }else{
-      await dbUpdateQuestion(question.id,{status:'review',review_reason:result.review_reason});
+      await dbUpdateQuestion(question.id,{status:'review',review_reason:result.review_reason,ai_confidence:result.confidence});
     }
     res.json({success:true,data:{...result,kb_entries_used:kbEntries.length}});
   }catch(e){res.status(500).json({success:false,error:e.message});}
