@@ -1,6 +1,6 @@
 'use strict';
 // Q&A Automation API v2.0 — Supabase + Claude AI
-// Updated: 2026-06-03 — Supabase persistence, Claude enrichment, RAG, KB endpoints
+// Updated: 2026-06-04 — fix Claude model name (haiku-4-5), pagination, count=0, null guards
 // Set env vars: SUPABASE_URL, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY
 
 const express  = require('express');
