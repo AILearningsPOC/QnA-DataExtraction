@@ -157,7 +157,7 @@ function makeQRow(product,qa){
     asked_at:askedAt.toISOString(), status:'unanswered', ai_generated:false,
     language:'en', language_name:'English', category:'product_info',
     sentiment:['positive','neutral','neutral','negative'][rand(0,3)],
-    ai_confidence:Math.round((0.72+Math.random()*0.27)*100)/100
+    ai_confidence:0
   };
 }
 
@@ -617,6 +617,8 @@ app.put('/api/knowledge-base/:id',async(req,res)=>{
 app.delete('/api/knowledge-base/:id',async(req,res)=>{
   try{
     if(!DB_READY) return res.status(503).json({success:false,error:'DB not connected'});
+    const{data:existing}=await db.from('knowledge_base').select('id').eq('id',req.params.id).maybeSingle();
+    if(!existing) return res.status(404).json({success:false,error:'KB entry not found'});
     await db.from('knowledge_base').update({is_active:false}).eq('id',req.params.id);
     res.json({success:true,message:'Entry deactivated'});
   }catch(e){res.status(500).json({success:false,error:e.message});}
