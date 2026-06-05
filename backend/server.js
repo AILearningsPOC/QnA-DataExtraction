@@ -536,9 +536,13 @@ app.patch('/api/questions/:id/approve',async(req,res)=>{
     const{approved_by,add_to_kb}=req.body||{};
     if(!DB_READY){
       const q=MEM_QUESTIONS.find(x=>x.id===req.params.id);
+      if(!q) return res.status(404).json({success:false,error:'Question not found'});
       if(q&&q.answer){q.answer.is_approved=true;q.status='answered';}
       return res.json({success:true,added_to_kb:false});
     }
+    // Verify question exists first
+    const{data:existCheck}=await db.from('questions').select('id').eq('id',req.params.id).maybeSingle();
+    if(!existCheck) return res.status(404).json({success:false,error:'Question not found'});
     // Update answer approval
     await db.from('answers').update({
       is_approved:true,
