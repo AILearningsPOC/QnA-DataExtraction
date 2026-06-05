@@ -410,7 +410,7 @@ function toast(msg,type='ok'){const el=document.createElement('div');el.classNam
 function log(msg,type='i'){ADMIN_LOG.unshift({msg,type,time:new Date().toLocaleTimeString()});const el=document.getElementById('adm-log');if(el)el.innerHTML=ADMIN_LOG.slice(0,30).map(l=>`<div class="admin-log-item ${l.type}">[${l.time}] ${l.msg}</div>`).join('');}
 async function apiFetch(path,opts={}){try{log(`${opts.method||'GET'} ${path}`);const r=await fetch(API_BASE+path,{headers:{'Content-Type':'application/json'},...opts});if(!r.ok)throw new Error(`HTTP ${r.status}`);return await r.json();}catch(e){const _fm=e.message==='Failed to fetch'?'Cannot reach backend — check API URL in Admin panel (Ctrl+Shift+A)':e.message;log(`ERROR: ${_fm}`,'e');toast(_fm.substring(0,60),'err');return null;}}
 
-async function loadProducts(){const d=await apiFetch(`/api/products?retailer=${RETAILER_ID}`);if(!d){document.getElementById('product-grid').innerHTML='<p style="color:red;padding:20px">Cannot load products. Update API URL in Admin panel.</p>';return;}ALL_PRODUCTS=(d&&Array.isArray(d.data))?d.data:(Array.isArray(d)?d:[]);renderProducts();loadAdminStats();}
+async function loadProducts(){document.getElementById('product-grid').innerHTML='<div style="text-align:center;padding:40px;color:#888">⏳ Connecting to backend…</div>';const d=await apiFetch(`/api/products?retailer=${RETAILER_ID}`);if(!d){document.getElementById('product-grid').innerHTML='<div style="text-align:center;padding:40px;color:#c00">⚠️ Could not load products. Open Admin panel (Ctrl+Shift+A) and verify the API URL.</div>';return;}ALL_PRODUCTS=(d&&Array.isArray(d.data))?d.data:(Array.isArray(d)?d:[]);renderProducts();loadAdminStats();}
 function renderProducts(){const search=document.getElementById('search-input').value.toLowerCase();let list=ALL_PRODUCTS.filter(p=>(currentFilter==='all'||p.category===currentFilter)&&(!search||p.title.toLowerCase().includes(search)));document.getElementById('product-count').textContent=`${list.length} items`;document.getElementById('product-grid').innerHTML=list.map(p=>`<div class="product-card" onclick="loadProductDetail('${p.id}')"><div class="product-card-badge">Member Value</div><img src="${p.image}" alt="${p.title}" loading="lazy"><div class="product-card-body"><div class="product-card-title">${p.title}</div><div class="product-card-model">Item #${p.sku}</div><div class="star-row"><span class="stars">${stars(p.rating)}</span><span class="review-count">(${p.review_count.toLocaleString()})</span></div><div class="member-price-label">Member Price</div><div class="product-card-price">$${p.price.toFixed(2)}</div><button class="btn-shop" onclick="event.stopPropagation();toast('Added to cart!')">Add to Cart</button></div></div>`).join('');}
 function setFilter(cat,btn){currentFilter=cat;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderProducts();}
 function filterProducts(){renderProducts();}
@@ -424,7 +424,7 @@ async function generateQuestions(){if(!currentProduct){toast('Open a product fir
 async function submitQuestion(){if(!currentProduct)return;const text=document.getElementById('ask-input').value.trim();const name=document.getElementById('asker-name').value.trim();if(!text){toast('Please enter your question','err');return;}const d=await apiFetch('/api/questions/add',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,question_text:text,asked_by:name||'Anonymous'})});if(d){toast('Question submitted!');document.getElementById('ask-input').value='';toggleAskForm();loadQuestions(1);}}
 function toggleAskForm(){const f=document.getElementById('ask-form');f.style.display=f.style.display==='block'?'none':'block';}
 
-function startAutoRefresh(){setInterval(async()=>{autoTimer--;if(autoTimer<=0){autoTimer=180;if(currentProduct){ loadQuestions(currentPage); }}}const m=Math.floor(autoTimer/60).toString().padStart(2,'0'),s=(autoTimer%60).toString().padStart(2,'0');const el=document.getElementById('adm-timer');if(el)el.textContent=`${m}:${s}`;},1000);}
+function startAutoRefresh(){setInterval(async()=>{autoTimer--;if(autoTimer<=0){autoTimer=180;if(currentProduct){const d=await apiFetch('/api/questions/generate',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,count:2})});if(d){loadQuestions(currentPage);toast('Auto-refreshed!');}}}const m=Math.floor(autoTimer/60).toString().padStart(2,'0'),s=(autoTimer%60).toString().padStart(2,'0');const el=document.getElementById('adm-timer');if(el)el.textContent=`${m}:${s}`;},1000);}
 
 async function loadAdminStats(){const d=await apiFetch('/api/admin/stats');if(!d)return;const r=d.data.by_retailer[RETAILER_ID]||{};document.getElementById('adm-products').textContent=r.products||0;document.getElementById('adm-questions').textContent=r.questions||0;document.getElementById('adm-answered').textContent=r.answered||0;document.getElementById('adm-unanswered').textContent=(r.questions||0)-(r.answered||0);}
 async function adminGenerate(){if(!currentProduct){toast('Open a product first','err');return;}const n=parseInt(document.getElementById('gen-count').value)||5;const d=await apiFetch('/api/questions/generate',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,count:n})});if(d){toast(`Generated ${d.generated}`);loadQuestions(1);loadAdminStats();}}
@@ -478,16 +478,13 @@ async function testApiUrl(){
   btn.textContent = '🔗 Test'; btn.disabled = false;
 }
 
+
 // Support direct product link: ?product={id}
-const _urlProduct = new URLSearchParams(window.location.search).get('product');
+const _urlProduct=new URLSearchParams(window.location.search).get('product');
 (async function init(){
   await loadProducts();
-  if(_urlProduct){
-    const found = ALL_PRODUCTS.find(p=>p.id===_urlProduct);
-    if(found) loadProductDetail(found.id);
-  }
+  if(_urlProduct){ const found=ALL_PRODUCTS.find(p=>p.id===_urlProduct); if(found) loadProductDetail(found.id); }
 })();
-
 </script>
 </body>
 </html>

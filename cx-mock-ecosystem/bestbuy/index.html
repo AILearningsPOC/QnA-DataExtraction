@@ -441,8 +441,9 @@ async function apiFetch(path, opts={}){
 
 // ── PRODUCT LISTING ───────────────────────────
 async function loadProducts(){
+  document.getElementById('product-grid').innerHTML='<div style="text-align:center;padding:40px;color:#888">⏳ Connecting to backend…</div>';
   const data = await apiFetch(`/api/products?retailer=${RETAILER_ID}`);
-  if(!data){ document.getElementById('product-grid').innerHTML='<p style="color:red;padding:20px">Could not load products. Check API_BASE URL in Admin panel.</p>'; return; }
+  if(!data){ document.getElementById('product-grid').innerHTML='<div style="text-align:center;padding:40px;color:#c00">⚠️ Could not load products. Open Admin panel (Ctrl+Shift+A) and verify the API URL.</div>'; return; }
   ALL_PRODUCTS = (data && Array.isArray(data.data)) ? data.data : (Array.isArray(data) ? data : []);
   renderProducts();
   loadAdminStats();
@@ -604,7 +605,7 @@ function startAutoRefresh(){
     autoTimer--;
     if(autoTimer<=0){
       autoTimer=180;
-      if(currentProduct){ loadQuestions(currentPage); }); if(d){loadQuestions(currentPage);} }
+      if(currentProduct){ const d=await apiFetch('/api/questions/generate',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,count:2})}); if(d){loadQuestions(currentPage);toast('Auto-refreshed — new questions added!');} }
     }
     const m=Math.floor(autoTimer/60).toString().padStart(2,'0'),s=(autoTimer%60).toString().padStart(2,'0');
     const el=document.getElementById('adm-timer');
@@ -649,14 +650,8 @@ if(new URLSearchParams(window.location.search).get('admin')==='true') setTimeout
 // ── INIT ──────────────────────────────────────
 // Auto-fill admin input and load products with correct URL
 document.getElementById('api-url-input').value = API_BASE;
-// Support direct product link: ?product={id}
-const _urlProduct = new URLSearchParams(window.location.search).get('product');
-loadProducts().then(()=>{
-  if(_urlProduct){
-    const found = ALL_PRODUCTS.find(p=>p.id===_urlProduct);
-    if(found) loadProductDetail(found.id);
-  }
-});
+const _urlProduct=new URLSearchParams(window.location.search).get('product');
+loadProducts().then(()=>{ if(_urlProduct){ const found=ALL_PRODUCTS.find(p=>p.id===_urlProduct); if(found) loadProductDetail(found.id); }});
 startAutoRefresh();
 log('BestBuy mock page initialized');
 
