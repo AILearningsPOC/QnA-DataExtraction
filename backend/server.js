@@ -693,20 +693,26 @@ app.get('/api/export/qa',async(req,res)=>{
 // ── SYNC PRODUCT URLS ─────────────────────────────────────────
 // Call POST /api/admin/sync-urls any time retailer URLs change (env vars updated)
 // Updates all product_url values in DB from current RETAILERS config — no reseed needed
-app.post('/api/admin/sync-urls',async(_req,res)=>{
+app.post('/api/admin/sync-urls',async(req,res)=>{
   try{
     if(!DB_READY) return res.status(503).json({success:false,error:'DB not connected'});
+    // Accept optional URL overrides in body — e.g. {bestbuy:'https://...', walmart:'https://...'}
+    const overrides=req.body||{};
+    // Apply overrides to RETAILERS in-memory for this request
+    const urlMap={};
+    RETAILERS.forEach(r=>{
+      urlMap[r.id]=overrides[r.id]||overrides[r.id+'_url']||r.base_url;
+    });
     const{data:products,error}=await db.from('products').select('id,retailer_id');
     if(error) throw error;
     let updated=0;
     for(const p of products||[]){
-      const r=RETAILERS.find(x=>x.id===p.retailer_id);
-      if(!r) continue;
-      await db.from('products').update({product_url:`${r.base_url}/?product=${p.id}`}).eq('id',p.id);
+      const base=urlMap[p.retailer_id];
+      if(!base) continue;
+      await db.from('products').update({product_url:`${base}/?product=${p.id}`}).eq('id',p.id);
       updated++;
     }
-    const urls=Object.fromEntries(RETAILERS.map(r=>[r.id,r.base_url]));
-    res.json({success:true,updated,current_urls:urls});
+    res.json({success:true,updated,applied_urls:urlMap});
   }catch(e){res.status(500).json({success:false,error:e.message});}
 });
 
