@@ -293,9 +293,10 @@ async function dbGetQuestions(filters,page,limit){
     throw error;
   }
   const flat=(Array.isArray(data)?data:[]).map(row=>{
-    const ans=row.answers&&row.answers.length?row.answers[0]:null;
+    // Supabase returns unique FK joins as single object, not array
+    const rawAns=row.answers;
+    const ans=Array.isArray(rawAns)?rawAns[0]||(rawAns.length?rawAns[0]:null):(rawAns&&rawAns.id?rawAns:null);
     const{answers,...rest}=row;
-    // Embed product info if joined
     const pTitle=row.products?.title||null;
     const pUrl=row.products?.product_url||null;
     return{...rest,answer:ans,product_title:pTitle,product_url:pUrl};
