@@ -276,7 +276,7 @@ body{font-family:'Roboto',Arial,sans-serif;background:#fff;color:var(--bb-text);
             <option value="newest">Newest first</option>
             <option value="oldest">Oldest first</option>
           </select>
-          <button class="btn-refresh" id="refresh-btn" onclick="generateQuestions()">🔄 Refresh</button>
+          <button class="btn-refresh" id="refresh-btn" onclick="loadQuestions(1)">🔄 Refresh</button>
           <button class="btn-ask" onclick="toggleAskForm()">Ask a Question</button>
         </div>
       </div>
@@ -604,7 +604,7 @@ function startAutoRefresh(){
     autoTimer--;
     if(autoTimer<=0){
       autoTimer=180;
-      if(currentProduct){ const d=await apiFetch('/api/questions/generate',{method:'POST',body:JSON.stringify({product_id:currentProduct.id,count:2})}); if(d){loadQuestions(currentPage);toast('Auto-refreshed — new questions added!');} }
+      if(currentProduct){ loadQuestions(currentPage); }); if(d){loadQuestions(currentPage);} }
     }
     const m=Math.floor(autoTimer/60).toString().padStart(2,'0'),s=(autoTimer%60).toString().padStart(2,'0');
     const el=document.getElementById('adm-timer');
