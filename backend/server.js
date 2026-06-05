@@ -66,10 +66,10 @@ function validate(body, ...fields) {
 
 
 const RETAILERS=[
-  {id:'bestbuy',name:'Best Buy',theme:'#003087',accent:'#FFE000',base_url:process.env.BESTBUY_URL||'https://mock-bestbuy.netlify.app'},
-  {id:'walmart',name:'Walmart', theme:'#0071CE',accent:'#FFC220',base_url:process.env.WALMART_URL||'https://mock-walm-art.netlify.app'},
-  {id:'amazon', name:'Amazon',  theme:'#131921',accent:'#FF9900',base_url:process.env.AMAZON_URL ||'https://mock-amazonde.netlify.app'},
-  {id:'costco', name:'Costco',  theme:'#005DAA',accent:'#E31837',base_url:process.env.COSTCO_URL ||'https://mock-costco.netlify.app'}
+  {id:'bestbuy',name:'Best Buy',theme:'#003087',accent:'#FFE000',base_url:process.env.BESTBUY_URL||'https://bestbuy-qna-dataextraction.netlify.app'},
+  {id:'walmart',name:'Walmart', theme:'#0071CE',accent:'#FFC220',base_url:process.env.WALMART_URL||'https://walm-art-qna-dataextraction.netlify.app'},
+  {id:'amazon', name:'Amazon',  theme:'#131921',accent:'#FF9900',base_url:process.env.AMAZON_URL ||'https://amazon-qna-dataextraction.netlify.app'},
+  {id:'costco', name:'Costco',  theme:'#005DAA',accent:'#E31837',base_url:process.env.COSTCO_URL ||'https://costco-qna-dataextraction.netlify.app'}
 ];
 
 const BASE_PRODUCTS=[
@@ -407,9 +407,10 @@ app.get('/api/health',async(_req,res)=>{
       ]);
       p=pc.count||0;q=qc.count||0;a=ac.count||0;rev=rc.count||0;kb=kc.count||0;
     }
+    const retailer_urls=Object.fromEntries(RETAILERS.map(r=>[r.id,r.base_url]));
     res.json({status:'ok',uptime:Math.round(process.uptime()),db_connected:DB_READY,
       ai_configured:!!ANTHROPIC_KEY,products:p,questions:q,answered:a,review:rev,kb_entries:kb,
-      timestamp:new Date().toISOString()});
+      retailer_urls,timestamp:new Date().toISOString()});
   }catch(e){res.json({status:'ok',uptime:Math.round(process.uptime()),db_connected:false,error:e.message});}
 });
 
@@ -685,6 +686,27 @@ app.get('/api/export/qa',async(req,res)=>{
     res.setHeader('Content-Type','text/csv');
     res.setHeader('Content-Disposition','attachment; filename=qa_export.csv');
     res.send(csv);
+  }catch(e){res.status(500).json({success:false,error:e.message});}
+});
+
+
+// ── SYNC PRODUCT URLS ─────────────────────────────────────────
+// Call POST /api/admin/sync-urls any time retailer URLs change (env vars updated)
+// Updates all product_url values in DB from current RETAILERS config — no reseed needed
+app.post('/api/admin/sync-urls',async(_req,res)=>{
+  try{
+    if(!DB_READY) return res.status(503).json({success:false,error:'DB not connected'});
+    const{data:products,error}=await db.from('products').select('id,retailer_id');
+    if(error) throw error;
+    let updated=0;
+    for(const p of products||[]){
+      const r=RETAILERS.find(x=>x.id===p.retailer_id);
+      if(!r) continue;
+      await db.from('products').update({product_url:`${r.base_url}/?product=${p.id}`}).eq('id',p.id);
+      updated++;
+    }
+    const urls=Object.fromEntries(RETAILERS.map(r=>[r.id,r.base_url]));
+    res.json({success:true,updated,current_urls:urls});
   }catch(e){res.status(500).json({success:false,error:e.message});}
 });
 
