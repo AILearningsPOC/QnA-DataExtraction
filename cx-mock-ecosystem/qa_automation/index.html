@@ -3,2333 +3,929 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Q&A Automation</title>
+<title>Q&A Automation — Hisense CX</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<!-- SheetJS for Excel parsing -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  :root {
-    --sidebar:#1e2235; --sidebar-hover:#262d44; --sidebar-active:#2d3554; --sidebar-border:#2a3050;
-    --bg:#f0f2f8; --card:#ffffff; --card-border:#e4e8f0; --header-bg:#ffffff;
-    --text:#1a1f35; --text2:#4b5675; --text3:#9099b5;
-    --blue:#3b82f6; --green:#10b981; --amber:#f59e0b; --red:#ef4444; --purple:#8b5cf6; --teal:#06b6d4;
-    --font:'Inter',sans-serif; --r:8px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+:root{
+  --sb:#1e2235;--sb-hover:#262d44;--sb-active:#2d3554;--sb-border:#2a3050;
+  --bg:#f0f2f8;--card:#fff;--card-border:#e4e8f0;--hdr:#fff;
+  --text:#1a1f35;--text2:#4b5675;--text3:#9099b5;
+  --blue:#3b82f6;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--teal:#06b6d4;
+  --font:'Inter',sans-serif;--r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+.sidebar{width:162px;min-width:162px;background:var(--sb);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50}
+.sb-logo{padding:15px 13px 11px;border-bottom:1px solid var(--sb-border);display:flex;align-items:center;gap:9px}
+.logo-box{width:28px;height:28px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.logo-t{font-size:13px;font-weight:700;color:#fff;line-height:1.1}
+.logo-s{font-size:9px;color:#7c8db5}
+.sb-nav{flex:1;padding:8px 0}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 13px;color:#8899c0;font-size:12.5px;font-weight:500;cursor:pointer;border-left:3px solid transparent;transition:all .15s;user-select:none}
+.ni:hover{background:var(--sb-hover);color:#c5d0e8}
+.ni.active{background:var(--sb-active);color:#fff;border-left-color:var(--blue)}
+.ni-icon{font-size:14px;width:18px;text-align:center}
+.ns{padding:10px 13px 3px;font-size:9px;color:#4a5470;font-weight:600;text-transform:uppercase;letter-spacing:.8px}
+.sb-foot{padding:11px 13px;border-top:1px solid var(--sb-border);display:flex;align-items:center;gap:8px}
+.av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
 
-  /* SIDEBAR */
-  .sb{width:162px;min-width:162px;background:var(--sidebar);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50}
-  .sb-logo{padding:15px 13px 11px;border-bottom:1px solid var(--sidebar-border);display:flex;align-items:center;gap:9px}
-  .logo-box{width:28px;height:28px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
-  .logo-t{font-size:13px;font-weight:700;color:#fff;line-height:1.1}
-  .logo-s{font-size:9px;color:#7c8db5}
-  .sim-banner{background:#fffbeb;border:1px solid #fcd34d;border-radius:var(--r);padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:12.5px;color:#92400e;line-height:1.5}
-  .sb-nav{flex:1;padding:8px 0}
-  .ni{display:flex;align-items:center;gap:9px;padding:9px 13px;color:#8899c0;font-size:12.5px;font-weight:500;cursor:pointer;border-left:3px solid transparent;transition:all .15s;user-select:none}
-  .ni:hover{background:var(--sidebar-hover);color:#c5d0e8}
-  .ni.active{background:var(--sidebar-active);color:#fff;border-left-color:var(--blue)}
-  .ni-icon{font-size:14px;width:18px;text-align:center}
-  .ns{padding:10px 13px 3px;font-size:9px;color:#4a5470;font-weight:600;text-transform:uppercase;letter-spacing:.8px}
-  .sb-foot{padding:11px 13px;border-top:1px solid var(--sidebar-border);display:flex;align-items:center;gap:8px}
-  .av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
-  .un{font-size:11px;color:#8899c0;font-weight:500}
-  .ur{font-size:9px;color:#4a5470}
+.main{margin-left:162px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--hdr);border-bottom:1px solid var(--card-border);padding:13px 22px 10px;display:flex;justify-content:space-between;align-items:flex-start}
+.page-title{font-size:20px;font-weight:700}
+.page-sub{font-size:12px;color:var(--text3);margin-top:1px}
+.badge{display:inline-block;background:#eff6ff;color:var(--blue);font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;margin-top:3px}
+.badge-red{background:#fef2f2;color:var(--red)}
+.panel{padding:18px 22px;display:none}
+.panel.active{display:block}
 
-  /* MAIN */
-  .mw{margin-left:162px;flex:1;display:flex;flex-direction:column;min-height:100vh}
-  .th{background:var(--header-bg);border-bottom:1px solid var(--card-border);padding:13px 22px 10px;display:flex;justify-content:space-between;align-items:flex-start}
-  .pt{font-size:20px;font-weight:700}
-  .ps{font-size:12px;color:var(--text3);margin-top:1px}
-  .rb{display:inline-block;background:#eff6ff;color:var(--blue);font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;margin-top:3px}
-  .hr{display:flex;align-items:center;gap:9px}
-  .hb{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);display:flex;align-items:center;gap:5px;transition:all .15s}
-  .hb-g{background:none;color:var(--text2);border:1px solid var(--card-border)}
-  .hb-g:hover{background:var(--bg)}
-  .hb-p{background:var(--green);color:#fff}
-  .hb-p:hover{background:#059669}
-  .clk{font-size:11px;color:var(--text3);font-weight:500}
+/* Cards */
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);margin-bottom:14px}
+.card-hdr{padding:11px 16px;border-bottom:1px solid var(--card-border);display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13px}
+.card-body{padding:14px 16px}
 
-  /* BODY */
-  .pb{padding:18px 22px;flex:1}
-  .sb2{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-  .st{font-size:15px;font-weight:600}
-  .sa{display:flex;gap:8px;align-items:center}
+/* Stat grid */
+.stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+.stat-card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);padding:14px 16px;text-align:center}
+.stat-num{font-size:28px;font-weight:700;line-height:1}
+.stat-lbl{font-size:11px;color:var(--text3);margin-top:4px}
+.c-bl{color:var(--blue)}.c-gr{color:var(--green)}.c-am{color:var(--amber)}.c-re{color:var(--red)}.c-pu{color:var(--purple)}
 
-  /* STAT CARDS */
-  .sr{display:grid;gap:13px;margin-bottom:16px}
-  .sc{background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);padding:15px 17px;position:relative}
-  .sbg{position:absolute;top:9px;right:11px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
-  .bg-act{background:#dcfce7;color:#16a34a}
-  .bg-warn{background:#fef3c7;color:#d97706}
-  .bg-info{background:#dbeafe;color:#2563eb}
-  .bg-err{background:#fee2e2;color:#dc2626}
-  .bg-ai{background:#ede9fe;color:#7c3aed}
-  .si{font-size:21px;margin-bottom:7px}
-  .sv{font-size:27px;font-weight:700;line-height:1;margin-bottom:3px}
-  .sl{font-size:12px;color:var(--text2);font-weight:500}
-  .ss{font-size:10px;color:var(--text3);margin-top:1px}
-  .c-bl{color:var(--blue)} .c-gr{color:var(--green)} .c-am{color:var(--amber)} .c-re{color:var(--red)} .c-pu{color:var(--purple)}
+/* Table */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:#f8f9fc;padding:9px 10px;text-align:left;font-weight:600;color:var(--text2);border-bottom:2px solid var(--card-border);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid #f1f3f9;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbff}
 
-  /* CARD */
-  .card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);margin-bottom:14px}
-  .ch{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--card-border)}
-  .cht{font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px}
-  .cb{padding:13px 15px}
+/* Buttons */
+.btn{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--card-border);font-family:var(--font);display:inline-flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.b-bl{background:var(--blue);color:#fff;border-color:var(--blue)}.b-bl:hover:not(:disabled){background:#2563eb}
+.b-gr{background:var(--green);color:#fff;border-color:var(--green)}.b-gr:hover:not(:disabled){background:#059669}
+.b-re{background:var(--red);color:#fff;border-color:var(--red)}.b-re:hover:not(:disabled){background:#dc2626}
+.b-pu{background:var(--purple);color:#fff;border-color:var(--purple)}.b-pu:hover:not(:disabled){background:#7c3aed}
+.b-gh{background:var(--card);color:var(--text2)}.b-gh:hover:not(:disabled){background:var(--bg)}
+.b-am{background:var(--amber);color:#fff;border-color:var(--amber)}.b-am:hover:not(:disabled){background:#d97706}
 
-  /* INPUTS */
-  .cr{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-  .inp{background:var(--bg);border:1px solid var(--card-border);border-radius:6px;padding:7px 11px;font-family:var(--font);font-size:12.5px;color:var(--text);outline:none;transition:border-color .15s}
-  .inp:focus{border-color:var(--blue)}
-  select.inp{cursor:pointer}
-  textarea.inp{resize:vertical;min-height:50px;width:100%}
-  .btn{padding:7px 13px;border:none;border-radius:6px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap}
-  .b-bl{background:var(--blue);color:#fff} .b-bl:hover{background:#2563eb}
-  .b-gr{background:var(--green);color:#fff} .b-gr:hover{background:#059669}
-  .b-gh{background:#fff;color:var(--text2);border:1px solid var(--card-border)} .b-gh:hover{border-color:var(--blue);color:var(--blue)}
-  .b-re{background:#fee2e2;color:#dc2626;border:1px solid #fca5a5}
-  .b-am{background:#fef3c7;color:#d97706;border:1px solid #fcd34d}
-  .b-pu{background:#ede9fe;color:#7c3aed;border:1px solid #c4b5fd}
-  .btn:disabled{opacity:.4;cursor:not-allowed}
+/* Tags */
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.t-bl{background:#eff6ff;color:#1d4ed8}.t-gr{background:#f0fdf4;color:#166534}
+.t-am{background:#fffbeb;color:#92400e}.t-re{background:#fef2f2;color:#991b1b}
+.t-pu{background:#f5f3ff;color:#5b21b6}.t-gy{background:#f1f5f9;color:#475569}
+.t-te{background:#ecfeff;color:#155e75}
 
-  /* TABLE */
-  .tw{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;font-size:12.5px}
-  th{padding:8px 13px;text-align:left;background:#f8f9fd;color:var(--text3);font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--card-border);white-space:nowrap}
-  td{padding:9px 13px;border-bottom:1px solid #f1f3fa;color:var(--text2);vertical-align:middle}
-  tr:last-child td{border-bottom:none}
-  tr:hover td{background:#f8faff}
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--card-border)}
+.inp{padding:6px 10px;border:1px solid var(--card-border);border-radius:6px;font-size:12px;font-family:var(--font);color:var(--text);background:var(--card);outline:none}
+.inp:focus{border-color:var(--blue)}
 
-  /* TAGS */
-  .tag{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
-  .t-bl{background:#dbeafe;color:#2563eb} .t-gr{background:#dcfce7;color:#16a34a}
-  .t-am{background:#fef3c7;color:#d97706} .t-re{background:#fee2e2;color:#dc2626}
-  .t-gy{background:#f1f5f9;color:#64748b} .t-pu{background:#ede9fe;color:#7c3aed}
-  .t-te{background:#ccfbf1;color:#0d9488}
+/* Alert bar */
+.alert{padding:10px 16px;border-radius:var(--r);font-size:12.5px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.alert-info{background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8}
+.alert-warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+.alert-err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
 
-  /* LOG */
-  .log{background:#f8f9fd;border:1px solid var(--card-border);border-radius:6px;padding:9px 11px;max-height:150px;overflow-y:auto;font-size:11.5px;line-height:1.9}
-  .lr{display:flex;gap:10px}
-  .lt{color:var(--text3);white-space:nowrap;font-size:10.5px}
-  .li{color:#2563eb} .ls{color:#16a34a} .lw{color:#d97706} .le{color:#dc2626}
+/* Progress bar */
+.pbar{height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin-top:4px}
+.pbar-fill{height:100%;border-radius:3px;transition:width .3s}
 
-  /* TIMERS */
-  .tr2{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:14px}
-  .tc{background:var(--card);border:1px solid var(--card-border);border-radius:var(--r);padding:13px 15px;display:flex;align-items:center;gap:11px}
-  .tl{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-  .tv{font-size:21px;font-weight:700;line-height:1.1}
-  .ts{font-size:10px;color:var(--text3);margin-top:1px}
+/* Toasts */
+#toasts{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{background:#1e2235;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,.2);animation:slideIn .2s ease}
+.toast.w{background:#92400e}.toast.e{background:#991b1b}
+@keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:none;opacity:1}}
 
-  /* PROGRESS */
-  .pt2{background:#e8ecf5;border-radius:4px;height:7px}
-  .pf{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width .4s}
+/* Link */
+.lnk{color:var(--blue);text-decoration:none;font-size:11.5px}.lnk:hover{text-decoration:underline}
 
-  /* MINI BARS */
-  .mb{display:flex;align-items:center;gap:9px;margin-bottom:9px}
-  .mbl{font-size:11.5px;color:var(--text2);min-width:88px}
-  .mbt{flex:1;background:#e8ecf5;border-radius:3px;height:8px}
-  .mbf{height:100%;border-radius:3px}
-  .mbv{font-size:11px;color:var(--text2);min-width:22px;text-align:right;font-weight:600}
+/* Confidence badge */
+.conf-hi{background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600}
+.conf-mid{background:#fffbeb;color:#92400e;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600}
+.conf-lo{background:#fef2f2;color:#991b1b;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600}
 
-  /* DASH GRID */
-  .dg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  @media(max-width:900px){.dg{grid-template-columns:1fr}}
+/* Edit textarea in table */
+.answer-edit{width:100%;min-height:52px;border:1px solid var(--card-border);border-radius:4px;padding:5px 8px;font-size:11.5px;font-family:var(--font);resize:vertical}
 
-  /* FILTER BAR */
-  .fb{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:9px 15px;background:#f8f9fd;border-bottom:1px solid var(--card-border)}
+/* Chart bars */
+.bar-row{margin-bottom:7px}
+.bar-row-hdr{display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px}
+.bar-track{background:var(--bg);border-radius:3px;height:7px}
+.bar-fill{height:7px;border-radius:3px;transition:width .4s}
 
-  /* POC BANNER */
-  .poc{background:#fffbeb;border:1px solid #fcd34d;border-radius:var(--r);padding:11px 15px;margin-bottom:14px;display:flex;align-items:flex-start;gap:9px}
-  .poc-t{font-size:12.5px;color:#92400e;line-height:1.6}
+/* Spinner */
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  /* UPLOAD ZONE */
-  .upload-zone{border:2px dashed var(--card-border);border-radius:var(--r);padding:28px;text-align:center;cursor:pointer;transition:all .2s;background:#fafbfe}
-  .upload-zone:hover,.upload-zone.drag{border-color:var(--blue);background:#eff6ff}
-  .upload-zone input{display:none}
-  .uz-icon{font-size:32px;margin-bottom:8px}
-  .uz-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
-  .uz-sub{font-size:12px;color:var(--text3)}
-  .uz-hint{font-size:11px;color:var(--text3);margin-top:6px;font-style:italic}
+/* Dashboard 2-col grid */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.dash-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
 
-  /* COLUMN MAPPER */
-  .col-map{background:#f8f9fd;border:1px solid var(--card-border);border-radius:var(--r);padding:14px;margin-top:12px}
-  .col-map-title{font-size:12px;font-weight:600;margin-bottom:10px;color:var(--text2)}
-  .cm-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12.5px}
-  .cm-label{min-width:120px;color:var(--text2);font-weight:500}
-
-  /* LINK */
-  a.lnk{color:var(--blue);font-size:11.5px;text-decoration:none}
-  a.lnk:hover{text-decoration:underline}
-
-  /* TOASTS */
-  .toasts{position:fixed;bottom:18px;right:18px;z-index:999;display:flex;flex-direction:column;gap:6px}
-  .toast{background:#fff;border:1px solid var(--card-border);border-left:3px solid var(--green);border-radius:7px;padding:8px 13px;font-size:12.5px;max-width:290px;box-shadow:0 4px 12px rgba(0,0,0,.1);display:flex;align-items:center;gap:7px;animation:ts .22s ease}
-  .toast.w{border-left-color:var(--amber)} .toast.e{border-left-color:var(--red)}
-  @keyframes ts{from{transform:translateX(28px);opacity:0}to{transform:translateX(0);opacity:1}}
-
-  /* MISC */
-  .empty{text-align:center;padding:34px;color:var(--text3)}
-  .empty .ei{font-size:30px;margin-bottom:7px}
-  .spin{width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .6s linear infinite;display:inline-block}
-  .spin-d{border-color:rgba(59,130,246,.2);border-top-color:var(--blue)}
-  @keyframes rot{to{transform:rotate(360deg)}}
-  ::-webkit-scrollbar{width:4px;height:4px}
-  ::-webkit-scrollbar-track{background:#f1f5f9}
-  ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
-
-  /* CONFIG PANEL */
-  .cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .cfg-item{display:flex;flex-direction:column;gap:5px}
-  .cfg-label{font-size:11.5px;font-weight:600;color:var(--text2)}
-  .cfg-hint{font-size:10.5px;color:var(--text3)}
-
-  .badge-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:10px;font-size:10px;font-weight:700;padding:0 6px}
+/* Review item */
+.rv-reason{font-size:11px;color:#92400e;background:#fffbeb;padding:4px 8px;border-radius:4px;margin-top:4px;max-width:260px}
 </style>
 </head>
 <body>
 
-<!-- ══════════════ SIDEBAR ══════════════ -->
-<aside class="sb">
+<!-- SIDEBAR -->
+<div class="sidebar">
   <div class="sb-logo">
     <div class="logo-box">CX</div>
-    <div><div class="logo-t">Q&A Automation</div><div class="logo-s">Q&A Automation</div></div>
+    <div><div class="logo-t">Q&A Auto</div><div class="logo-s">Hisense PoC</div></div>
   </div>
-  <nav class="sb-nav">
+  <div class="sb-nav">
     <div class="ns">Main</div>
-    <div class="ni" onclick="goTab('dashboard')" id="nav-dashboard"><span class="ni-icon">📊</span>Analytics</div>
-    <div class="ns">Operations</div>
-    <div class="ni active" onclick="goTab('input')" id="nav-input"><span class="ni-icon">🔗</span>URL Manager</div>
-    <div class="ni" onclick="goTab('scrape')" id="nav-scrape"><span class="ni-icon">🕷</span>Q&A Scraper</div>
-    <div class="ni" onclick="goTab('answers')" id="nav-answers"><span class="ni-icon">✍️</span>Answer Queue</div>
-    <div class="ni" onclick="goTab('submit')" id="nav-submit"><span class="ni-icon">📤</span>Post Manager</div>
-    <div class="ns">Settings</div>
-    <div class="ni" onclick="goTab('review')" id="nav-review"><span class="ni-icon">🔍</span>Review Queue<span id="review-badge" style="background:#ef4444;color:#fff;border-radius:9px;padding:1px 5px;font-size:10px;font-weight:700;margin-left:4px;display:none">0</span></div>
+    <div class="ni active" onclick="goTab('dashboard')" id="nav-dashboard"><span class="ni-icon">📊</span>Analytics</div>
+    <div class="ni" onclick="goTab('answers')" id="nav-answers"><span class="ni-icon">✍️</span>Answer Queue <span id="ans-badge" style="margin-left:auto;background:#f59e0b;color:#fff;font-size:9px;padding:1px 6px;border-radius:8px;display:none">0</span></div>
+    <div class="ni" onclick="goTab('post')" id="nav-post"><span class="ni-icon">📤</span>Post Manager</div>
+    <div class="ns">Review</div>
+    <div class="ni" onclick="goTab('review')" id="nav-review"><span class="ni-icon">🔍</span>Review Queue <span id="rv-badge" style="margin-left:auto;background:#ef4444;color:#fff;font-size:9px;padding:1px 6px;border-radius:8px;display:none">0</span></div>
+    <div class="ns">Knowledge</div>
     <div class="ni" onclick="goTab('kb')" id="nav-kb"><span class="ni-icon">📚</span>Knowledge Base</div>
+    <div class="ns">Settings</div>
     <div class="ni" onclick="goTab('config')" id="nav-config"><span class="ni-icon">⚙️</span>Configuration</div>
-  </nav>
-  <div class="sb-foot">
-    <div class="av" id="av-initials">CX</div>
-    <div><div class="un" id="sb-username">Operator</div><div class="ur">Role: Q&A Agent</div></div>
   </div>
-</aside>
+  <div class="sb-foot">
+    <div class="av">OP</div>
+    <div style="font-size:11px;color:#8899c0">Operator</div>
+  </div>
+</div>
 
-<!-- ══════════════ MAIN ══════════════ -->
-<div class="mw">
-  <header class="th">
-    <div>
-      <div class="pt" id="page-title">Welcome Back</div>
-      <div class="ps" id="page-sub">Manage product Q&A automation across all retail channels</div>
-      <span class="rb" id="page-role">Q&A Agent</span>
+<!-- MAIN -->
+<div class="main">
+<div class="topbar">
+  <div>
+    <div class="page-title" id="page-title">Analytics</div>
+    <div class="page-sub" id="page-sub">Live stats from Supabase</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span id="api-status" class="tag t-gy" style="font-size:11px">⚪ Not connected</span>
+    <button class="btn b-gh" style="font-size:11px" onclick="refreshAll()">↺ Refresh</button>
+  </div>
+</div>
+<div id="toasts"></div>
+
+<!-- ══ DASHBOARD ══ -->
+<div id="panel-dashboard" class="panel active">
+  <div class="stat-grid" style="grid-template-columns:repeat(5,1fr)">
+    <div class="stat-card"><div class="stat-num c-bl" id="d-total">—</div><div class="stat-lbl">Total Questions</div></div>
+    <div class="stat-card"><div class="stat-num c-gr" id="d-answered">—</div><div class="stat-lbl">Answered</div></div>
+    <div class="stat-card"><div class="stat-num c-am" id="d-unanswered">—</div><div class="stat-lbl">Unanswered</div></div>
+    <div class="stat-card"><div class="stat-num c-re" id="d-review">—</div><div class="stat-lbl">In Review</div></div>
+    <div class="stat-card"><div class="stat-num c-pu" id="d-kb">—</div><div class="stat-lbl">KB Entries</div></div>
+  </div>
+  <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="stat-card"><div class="stat-num c-gr" id="d-auto-pct">—</div><div class="stat-lbl">Automation Rate</div><div class="pbar"><div class="pbar-fill" id="d-auto-bar" style="background:var(--green);width:0%"></div></div></div>
+    <div class="stat-card"><div class="stat-num c-bl" id="d-products">—</div><div class="stat-lbl">Active Products</div></div>
+    <div class="stat-card"><div class="stat-num" id="d-ai-status" style="font-size:14px;margin-top:4px">—</div><div class="stat-lbl">AI / DB Status</div></div>
+  </div>
+  <div class="dash-grid">
+    <div class="card">
+      <div class="card-hdr">🏪 By Retailer</div>
+      <div class="card-body" id="d-retailer-chart"><div style="color:var(--text3);font-size:12px">Loading…</div></div>
     </div>
-    <div class="hr">
-      <button class="hb hb-g" onclick="goTab('scrape')">🕷 Run Scraper</button>
-      <button class="hb hb-g" onclick="goTab('submit')">📤 Post Queue</button>
-      <button class="hb hb-p" onclick="goTab('answers')">✍️ Answer Queue</button>
-      <span class="clk" id="clock">--:--:--</span>
+    <div class="card">
+      <div class="card-hdr">📂 By Category</div>
+      <div class="card-body" id="d-category-chart"><div style="color:var(--text3);font-size:12px">Loading…</div></div>
     </div>
-  </header>
-
-  <div class="pb">
-
-    <!-- ══ CONFIG ══ -->
-    <div id="panel-config" class="tp" style="display:none">
-      <div class="sb2">
-        <div class="st">Configuration</div>
-        <div class="sa">
-          <button class="btn b-gr" onclick="saveConfig()">💾 Save Config</button>
-        </div>
-      </div>
-
-      <div class="card" style="border-color:#8b5cf6;border-width:2px">
-        <div class="ch" style="background:#f5f3ff"><div class="cht" style="color:#6d28d9">🤖 Claude AI Configuration</div></div>
-        <div class="cb">
-          <div class="cfg-grid">
-            <div class="cfg-item" style="grid-column:1/-1">
-              <div class="cfg-label">Claude API Key</div>
-              <div style="display:flex;gap:8px;align-items:center">
-                <input class="inp" type="password" id="cfg-claude-key" value="" placeholder="sk-ant-api03-..." style="flex:1;font-family:monospace">
-                <button class="btn b-bl" onclick="toggleClaudeKeyVisibility()" id="claude-key-eye" style="padding:6px 10px">👁</button>
-              </div>
-              <div class="cfg-hint">Stored locally in your browser. Used for AI enrichment, classification, sentiment and RAG answer generation via your Railway backend. Railway env var ANTHROPIC_API_KEY takes precedence on the server.</div>
-            </div>
-            <div id="claude-status-banner" style="display:none;grid-column:1/-1;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:500"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" style="border-color:#3b82f6;border-width:2px">
-        <div class="ch" style="background:#eff6ff"><div class="cht" style="color:#2563eb">🔌 API Connection — Mock Retailer Backend</div></div>
-        <div class="cb">
-          <div class="cfg-grid">
-            <div class="cfg-item" style="grid-column:1/-1">
-              <div class="cfg-label">API Base URL</div>
-              <div style="display:flex;gap:8px;align-items:center">
-                <input class="inp" id="cfg-api-url" value="" placeholder="https://qna-dataextraction-production.up.railway.app" style="flex:1">
-                <button class="btn b-bl" onclick="testApiConnection()" id="api-test-btn">🔗 Test Connection</button>
-              </div>
-              <div class="cfg-hint">Your Railway backend URL (no trailing slash). Once connected, use "📥 Load Q&A" in URL Manager to fetch all mock retailer products automatically.</div>
-            </div>
-            <div id="api-status-banner" style="display:none;grid-column:1/-1;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:500;margin-top:4px"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="ch"><div class="cht">👤 Operator Identity</div></div>
-        <div class="cb">
-          <div class="cfg-grid">
-            <div class="cfg-item">
-              <div class="cfg-label">Operator Name</div>
-              <input class="inp" id="cfg-username" value="Operator" placeholder="Your name">
-              <div class="cfg-hint">Shown in sidebar and post logs</div>
-            </div>
-            <div class="cfg-item">
-              <div class="cfg-label">Role Label</div>
-              <input class="inp" id="cfg-role" value="Q&A Agent" placeholder="e.g. Q&A Agent">
-              <div class="cfg-hint">Shown in header badge</div>
-            </div>
-            <div class="cfg-item">
-              <div class="cfg-label">Client / Company Name</div>
-              <input class="inp" id="cfg-client" value="" placeholder="e.g. Hisense USA">
-              <div class="cfg-hint">Shown in dashboard heading</div>
-            </div>
-            <div class="cfg-item">
-              <div class="cfg-label">Default Retailer</div>
-              <input class="inp" id="cfg-retailer" value="" placeholder="e.g. BESTBUY">
-              <div class="cfg-hint">Pre-selected in dropdowns</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="ch"><div class="cht">⏱ Automation Timers</div></div>
-        <div class="cb">
-          <div class="cfg-grid">
-            <div class="cfg-item">
-              <div class="cfg-label">Scrape Interval (seconds)</div>
-              <input class="inp" id="cfg-scrape-int" type="number" min="30" value="240">
-              <div class="cfg-hint">Default: 240s (4 min)</div>
-            </div>
-            <div class="cfg-item">
-              <div class="cfg-label">Post Interval (seconds)</div>
-              <input class="inp" id="cfg-post-int" type="number" min="60" value="420">
-              <div class="cfg-hint">Default: 420s (7 min)</div>
-            </div>
-            <div class="cfg-item">
-              <div class="cfg-label">Time per Manual Answer (min)</div>
-              <input class="inp" id="cfg-time-per-q" type="number" min="1" value="8">
-              <div class="cfg-hint">Used for savings calculation</div>
-            </div>
-            <div class="cfg-item">
-              <div class="cfg-label">Working Hours per Day</div>
-              <input class="inp" id="cfg-work-hrs" type="number" min="1" max="24" value="8">
-              <div class="cfg-hint">For FTE equivalent calc</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="ch"><div class="cht">🤖 AI Answer Settings</div></div>
-        <div class="cb">
-          <div class="cfg-grid" style="margin-bottom:12px">
-            <div class="cfg-item" style="grid-column:1/-1">
-              <div class="cfg-label">Default AI Answer Fallback Template</div>
-              <textarea class="inp" id="cfg-ai-fallback" rows="3">Thank you for your question! Our team has reviewed your inquiry. Please contact our support team for the most accurate information. We appreciate your interest!</textarea>
-              <div class="cfg-hint">Used when no specific AI mapping matches. Use {question} as placeholder.</div>
-            </div>
-          </div>
-          <div id="ai-kv-container">
-            <!-- Dynamic AI keyword→answer pairs added here -->
-          </div>
-          <button class="btn b-gh" onclick="addAIRule()" style="margin-top:8px">+ Add AI Rule</button>
-          <div class="cfg-hint" style="margin-top:6px">Add keyword → answer pairs. If customer question contains the keyword, this answer is used.</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="ch"><div class="cht">🏪 Retailer Definitions</div></div>
-        <div class="cb">
-          <div id="retailer-container"></div>
-          <button class="btn b-gh" onclick="addRetailer()" style="margin-top:8px">+ Add Retailer</button>
-          <div class="cfg-hint" style="margin-top:6px">Define which retailers to support. Name is used as the identifier throughout the app.</div>
-        </div>
-      </div>
+  </div>
+  <div class="dash-grid">
+    <div class="card">
+      <div class="card-hdr">💬 By Sentiment</div>
+      <div class="card-body" id="d-sentiment-chart"><div style="color:var(--text3);font-size:12px">Loading…</div></div>
     </div>
-
-    <!-- ══ URL INPUT ══ -->
-    <div id="panel-input" class="tp">
-      <div class="sb2">
-        <div class="st">URL Manager — Product Q&A Pages</div>
-        <div class="sa">
-          <button class="btn b-bl" onclick="loadUrlsFromApi()" id="load-api-btn">📥 Load Q&A</button>
-          <button class="btn b-gh" onclick="exportUrls()">⬇ Export CSV</button>
-          <button class="btn b-re" onclick="clearUrls()">🗑 Clear All</button>
-        </div>
-      </div>
-
-      <!-- Upload Zone -->
-      <div class="card">
-        <div class="ch"><div class="cht">📁 Import from Excel / CSV</div></div>
-        <div class="cb">
-          <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()"
-               ondragover="ev.preventDefault();this.classList.add('drag')"
-               ondragleave="this.classList.remove('drag')"
-               ondrop="handleDrop(event)">
-            <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(this.files[0])">
-            <div class="uz-icon">📊</div>
-            <div class="uz-title">Drop Excel / CSV file here or click to browse</div>
-            <div class="uz-sub">Supported: .xlsx, .xls, .csv</div>
-            <div class="uz-hint">Expected columns: URL (required), Product, Retailer, Model, SKU — any column order, any sheet name</div>
-          </div>
-
-          <!-- Column Mapper (shown after upload) -->
-          <div id="col-mapper" class="col-map" style="display:none">
-            <div class="col-map-title">📋 Map columns from your file → system fields</div>
-            <div id="mapper-rows"></div>
-            <div style="display:flex;gap:8px;margin-top:10px">
-              <button class="btn b-bl" onclick="applyMapping()">✓ Import Mapped Data</button>
-              <button class="btn b-gh" onclick="document.getElementById('col-mapper').style.display='none'">Cancel</button>
-            </div>
-          </div>
-
-          <div id="upload-preview" style="display:none;margin-top:12px">
-            <div style="font-size:12px;color:var(--text3);margin-bottom:6px" id="upload-summary"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Manual Add -->
-      <div class="card">
-        <div class="ch"><div class="cht">➕ Add URL Manually</div></div>
-        <div class="cb">
-          <div class="cr">
-            <input type="text" class="inp" id="newUrl" placeholder="Paste product Q&A URL..." style="flex:1;min-width:280px">
-            <input type="text" class="inp" id="newProduct" placeholder="Product name (optional)" style="width:190px">
-            <select class="inp" id="newRetailer" style="width:130px">
-              <!-- Populated dynamically from config -->
-            </select>
-            <input type="text" class="inp" id="newModel" placeholder="Model No" style="width:100px">
-            <input type="text" class="inp" id="newSku" placeholder="SKU" style="width:100px">
-            <button class="btn b-bl" onclick="addUrl()">+ Add</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="ch">
-          <div class="cht">🔗 URL Registry <span class="tag t-bl" id="url-count-badge">0 URLs</span></div>
-        </div>
-        <div class="tw">
-          <table>
-            <thead><tr><th>#</th><th>Retailer</th><th>Product</th><th>Model</th><th>SKU</th><th>URL</th><th>Status</th><th>Last Scraped</th><th>Qs Found</th><th>Actions</th></tr></thead>
-            <tbody id="url-tbody"></tbody>
-          </table>
-        </div>
-      </div>
+    <div class="card">
+      <div class="card-hdr">⚡ Pipeline Health</div>
+      <div class="card-body" id="d-pipeline"><div style="color:var(--text3);font-size:12px">Loading…</div></div>
     </div>
+  </div>
+</div>
 
-    <!-- ══ SCRAPER ══ -->
-    <div id="panel-scrape" class="tp" style="display:none">
-      <div class="sb2">
-        <div class="st">Q&A Scraper Engine</div>
-        <div class="sa">
-          <button class="btn b-gh" onclick="toggleAutoScrape()" id="auto-scrape-btn">⏸ Pause Auto</button>
-          <button class="btn b-bl" onclick="runScraper()" id="scrape-btn">▶ Run Now</button>
-        </div>
-      </div>
-
-      <div class="tr2">
-        <div class="tc"><span style="font-size:22px">⏱</span><div><div class="tl">Next Scrape</div><div class="tv c-bl" id="scrape-cd">--:--</div><div class="ts" id="scrape-int-label">Every -- mins</div></div></div>
-        <div class="tc"><span style="font-size:22px">📦</span><div><div class="tl">Total Questions</div><div class="tv c-bl" id="total-q">0</div><div class="ts">In database</div></div></div>
-        <div class="tc"><span style="font-size:22px">🆕</span><div><div class="tl">New This Session</div><div class="tv c-gr" id="new-q">0</div><div class="ts">Since last load</div></div></div>
-        <div class="tc"><span style="font-size:22px">🚫</span><div><div class="tl">Skipped</div><div class="tv c-am" id="skip-q">0</div><div class="ts">AI / Already answered</div></div></div>
-      </div>
-
-      <div class="card" style="margin-bottom:13px">
-        <div class="ch">
-          <div class="cht">📡 Scraper Log</div>
-          <button class="btn b-gh" style="font-size:11px;padding:4px 9px" onclick="clearLog('scrape-log')">Clear</button>
-        </div>
-        <div class="cb" style="padding:9px 13px"><div class="log" id="scrape-log"><div class="lr"><span class="lt">--:--:--</span><span class="li">System ready. Load URLs and run scraper.</span></div></div></div>
-      </div>
-
-      <div class="card">
-        <div class="ch">
-          <div class="cht">📋 Scraped Questions <span class="tag t-bl" id="q-count-badge">0</span></div>
-          <div style="display:flex;gap:7px">
-            <select class="inp" style="font-size:12px;padding:5px 9px" id="q-filter" onchange="renderQTable()">
-              <option value="">All Retailers</option>
-            </select>
-            <button class="btn b-gh" onclick="exportQnA()">⬇ Export</button>
-          </div>
-        </div>
-        <div class="tw">
-          <table>
-            <thead><tr><th>#</th><th>Retailer</th><th>Product</th><th>Question</th><th>Posted By</th><th>Date</th><th>AI Gen?</th><th>Status</th><th>Source</th></tr></thead>
-            <tbody id="q-tbody"></tbody>
-          </table>
-        </div>
-      </div>
+<!-- ══ ANSWER QUEUE ══ -->
+<div id="panel-answers" class="panel">
+  <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
+    <div class="stat-card"><div class="stat-num c-am" id="aq-pending">—</div><div class="stat-lbl">Pending</div></div>
+    <div class="stat-card"><div class="stat-num c-gr" id="aq-answered">—</div><div class="stat-lbl">Answered</div></div>
+    <div class="stat-card"><div class="stat-num c-re" id="aq-review">—</div><div class="stat-lbl">In Review</div></div>
+    <div class="stat-card"><div class="stat-num c-pu" id="aq-ai">—</div><div class="stat-lbl">AI Generated</div></div>
+  </div>
+  <div class="card">
+    <div class="toolbar">
+      <select class="inp" id="aq-filter-retailer" onchange="loadAnswerQueue()"><option value="">All Retailers</option><option>BESTBUY</option><option>WALMART</option><option>AMAZON</option><option>COSTCO</option></select>
+      <select class="inp" id="aq-filter-status" onchange="loadAnswerQueue()">
+        <option value="">All Status</option>
+        <option value="unanswered">Unanswered</option>
+        <option value="answered">Answered</option>
+        <option value="review">In Review</option>
+      </select>
+      <select class="inp" id="aq-filter-cat" onchange="loadAnswerQueue()">
+        <option value="">All Categories</option>
+        <option value="product_info">Product Info</option>
+        <option value="pricing">Pricing</option>
+        <option value="warranty">Warranty</option>
+        <option value="compatibility">Compatibility</option>
+        <option value="usage">Usage</option>
+        <option value="complaint">Complaint</option>
+        <option value="returns">Returns</option>
+        <option value="other">Other</option>
+      </select>
+      <button class="btn b-pu" onclick="ragAll()" id="rag-all-btn">🤖 AI Answer All</button>
+      <button class="btn b-gh" onclick="loadAnswerQueue()">↺ Refresh</button>
+      <button class="btn b-gh" onclick="exportAnswerQueue()">⬇ Export</button>
     </div>
-
-    <!-- ══ ANSWER QUEUE ══ -->
-    <div id="panel-answers" class="tp" style="display:none">
-      <div class="sb2">
-        <div class="st">Answer Queue</div>
-        <div class="sa">
-          <select class="inp" id="ans-f-retailer" onchange="renderAnswerTable()"><option value="">All Retailers</option></select>
-          <select class="inp" id="ans-f-status" onchange="renderAnswerTable()">
-            <option value="">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="answered">Answered</option>
-            <option value="posted">Posted</option>
-          </select>
-          <button class="btn b-pu" onclick="genAllAI()" id="ai-all-btn">🤖 AI Rules (All)</button>
-          <button class="btn b-bl" onclick="genAllRAG()" id="gen-rag-btn">✨ AI+RAG (All)</button>
-          <button class="btn b-gr" onclick="saveAll()">💾 Save All</button>
-        </div>
-      </div>
-
-      <div class="sr" style="grid-template-columns:repeat(4,1fr)">
-        <div class="sc"><span class="sbg bg-info">TOTAL</span><div class="si">📋</div><div class="sv c-bl" id="a-total">0</div><div class="sl">Total Questions</div></div>
-        <div class="sc"><span class="sbg bg-warn">PENDING</span><div class="si">⏳</div><div class="sv c-am" id="a-pending">0</div><div class="sl">Awaiting Answer</div></div>
-        <div class="sc"><span class="sbg bg-act">READY</span><div class="si">✅</div><div class="sv c-gr" id="a-ready">0</div><div class="sl">Ready to Post</div></div>
-        <div class="sc"><span class="sbg bg-info">POSTED</span><div class="si">📤</div><div class="sv c-bl" id="a-posted">0</div><div class="sl">Submitted</div></div>
-        <div class="sc"><span class="sbg bg-ai">AI</span><div class="si">🤖</div><div class="sv c-pu" id="a-ai">0</div><div class="sl">AI Generated</div></div>
-      </div>
-
-      <div class="card">
-        <div class="tw">
-          <table>
-            <thead><tr><th>#</th><th>Retailer</th><th>Product</th><th>Question</th><th>Lang</th><th>Category</th><th>Sentiment</th><th>Conf%</th><th>Answer</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="ans-tbody"></tbody>
-          </table>
-        </div>
-      </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Retailer</th><th>Product</th><th>Question</th>
+          <th>Lang</th><th>Category</th><th>Sentiment</th><th>Conf%</th>
+          <th>Answer</th><th>Status</th><th>View</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="aq-tbody"><tr><td colspan="12" style="text-align:center;padding:30px;color:var(--text3)">Loading questions…</td></tr></tbody>
+      </table>
     </div>
+    <div id="aq-pagination" style="padding:10px 16px;display:flex;gap:6px;flex-wrap:wrap"></div>
+  </div>
+</div>
 
-    <!-- ══ POST MANAGER ══ -->
-    <div id="panel-submit" class="tp" style="display:none">
-      <div class="sb2">
-        <div class="st">Post Manager</div>
-        <div class="sa">
-          <button class="btn b-gh" onclick="toggleAutoPost()" id="auto-post-btn">⏸ Pause Auto</button>
-          <button class="btn b-bl" onclick="runPostCycle()" id="post-btn">📤 Run Post Cycle</button>
-        </div>
-      </div>
-
-      <div class="poc">
-        <span style="font-size:18px;flex-shrink:0;margin-top:1px">⚠️</span>
-        <div class="poc-t">
-          <strong>POC / Test Mode Active:</strong> Per client requirement, actual HTTP submission to live retailer websites is <strong>disabled</strong>.
-          The system validates, deduplicates, logs and simulates the full posting workflow — no real requests are sent.
-          <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-            <span class="tag t-re" style="font-size:12px;padding:4px 12px" id="live-badge">🔴 LIVE POSTING: DISABLED</span>
-            <button class="btn b-gh" style="font-size:11px" onclick="toggleLive()">Toggle Live Mode</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="tr2">
-        <div class="tc"><span style="font-size:22px">📬</span><div><div class="tl">Next Post Cycle</div><div class="tv c-gr" id="post-cd">--:--</div><div class="ts" id="post-int-label">Every -- mins</div></div></div>
-        <div class="tc"><span style="font-size:22px">✅</span><div><div class="tl">Total Posted</div><div class="tv c-gr" id="total-posted">0</div><div class="ts">All sessions</div></div></div>
-        <div class="tc"><span style="font-size:22px">⏳</span><div><div class="tl">Ready to Post</div><div class="tv c-am" id="ready-post">0</div><div class="ts">Answered, not sent</div></div></div>
-        <div class="tc"><span style="font-size:22px">🛡</span><div><div class="tl">Duplicate Guard</div><div class="tv c-gr">ON</div><div class="ts">No re-submissions</div></div></div>
-      </div>
-
-      <div class="card" style="margin-bottom:13px">
-        <div class="ch">
-          <div class="cht">📡 Post Log</div>
-          <button class="btn b-gh" style="font-size:11px;padding:4px 9px" onclick="clearLog('post-log')">Clear</button>
-        </div>
-        <div class="cb" style="padding:9px 13px"><div class="log" id="post-log"><div class="lr"><span class="lt">--:--:--</span><span class="li">Post manager ready.</span></div></div></div>
-      </div>
-
-      <div class="card">
-        <div class="ch">
-          <div class="cht">📋 Post Queue</div>
-          <div style="display:flex;gap:7px">
-            <select class="inp" style="font-size:12px;padding:5px 9px" id="post-filter" onchange="renderPostTable()">
-              <option value="">All</option><option value="answered">Ready</option><option value="posted">Posted</option>
-            </select>
-            <button class="btn b-gh" onclick="exportPosted()">⬇ Export</button>
-          </div>
-        </div>
-        <div class="tw">
-          <table>
-            <thead><tr><th>#</th><th>Retailer</th><th>Product</th><th>Question</th><th>Answer</th><th>Status</th><th>Posted At</th><th>Post ID</th></tr></thead>
-            <tbody id="post-tbody"></tbody>
-          </table>
-        </div>
-      </div>
+<!-- ══ POST MANAGER ══ -->
+<div id="panel-post" class="panel">
+  <div class="alert alert-info">📌 Answers posted here are saved to Supabase and will appear on the mock retailer pages immediately on refresh.</div>
+  <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
+    <div class="stat-card"><div class="stat-num c-gr" id="pm-posted">—</div><div class="stat-lbl">Total Posted</div></div>
+    <div class="stat-card"><div class="stat-num c-am" id="pm-ready">—</div><div class="stat-lbl">Ready to Post</div></div>
+    <div class="stat-card"><div class="stat-num c-bl" id="pm-ai">—</div><div class="stat-lbl">AI Generated</div></div>
+  </div>
+  <div class="card">
+    <div class="toolbar">
+      <select class="inp" id="pm-filter-retailer" onchange="loadPostQueue()"><option value="">All Retailers</option><option>BESTBUY</option><option>WALMART</option><option>AMAZON</option><option>COSTCO</option></select>
+      <button class="btn b-bl" onclick="postAllReady()" id="post-all-btn">📤 Post All Ready</button>
+      <button class="btn b-gh" onclick="loadPostQueue()">↺ Refresh</button>
+      <button class="btn b-gh" onclick="exportPostQueue()">⬇ Export</button>
     </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Retailer</th><th>Product</th><th>Question</th>
+          <th>Answer Preview</th><th>Answered By</th><th>Status</th><th>View</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="pm-tbody"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text3)">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-    <!-- ══ DASHBOARD ══ -->
-    <div id="panel-dashboard" class="tp" style="display:none">
-      <div class="sb2">
-        <div class="st" id="dash-title">Performance Dashboard</div>
-        <div class="sa">
-          <button class="btn b-gh" onclick="resetDashFilters()">↺ Reset</button>
-          <button class="btn b-bl" onclick="renderDashboard()">🔄 Refresh</button>
-          <button class="btn b-gh" onclick="exportDashboard()">⬇ Export Report</button>
-        </div>
-      </div>
+<!-- ══ REVIEW QUEUE ══ -->
+<div id="panel-review" class="panel">
+  <div class="alert alert-warn">🔍 These questions need human review — low confidence AI answers, non-English questions, or complaints.</div>
+  <div class="card">
+    <div class="toolbar">
+      <select class="inp" id="rv-filter-retailer" onchange="loadReviewQueue()"><option value="">All Retailers</option><option>BESTBUY</option><option>WALMART</option><option>AMAZON</option><option>COSTCO</option></select>
+      <button class="btn b-gh" onclick="loadReviewQueue()">↺ Refresh</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Lang</th><th>Category</th><th>Sentiment</th><th>Conf%</th>
+          <th>Question</th><th>Product</th><th>Retailer</th><th>Review Reason</th><th>View</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="rv-tbody"><tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text3)">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-      <div class="card" style="margin-bottom:14px">
-        <div class="fb">
-          <span style="font-size:11px;color:var(--text3);font-weight:600">FILTER BY:</span>
-          <select class="inp" id="d-retailer" onchange="renderDashboard()"><option value="">All Retailers</option></select>
-          <input type="date" class="inp" id="d-start" onchange="renderDashboard()">
-          <span style="font-size:12px;color:var(--text3)">to</span>
-          <input type="date" class="inp" id="d-end" onchange="renderDashboard()">
-        </div>
-      </div>
-
-      <div class="sr" style="grid-template-columns:repeat(5,1fr)">
-        <div class="sc"><span class="sbg bg-info">TOTAL</span><div class="si">📋</div><div class="sv c-bl" id="d-total">0</div><div class="sl">Scraped</div><div class="ss">All products</div></div>
-        <div class="sc"><span class="sbg bg-act">DONE</span><div class="si">✅</div><div class="sv c-gr" id="d-posted">0</div><div class="sl">Answers Posted</div><div class="ss">Simulated</div></div>
-        <div class="sc"><span class="sbg bg-warn">OPEN</span><div class="si">⏳</div><div class="sv c-am" id="d-pend">0</div><div class="sl">Pending</div><div class="ss">Needs response</div></div>
-        <div class="sc"><span class="sbg bg-ai">AI</span><div class="si">🤖</div><div class="sv c-pu" id="d-ai">0</div><div class="sl">AI Generated</div><div class="ss">By Q&A Automation</div></div>
-        <div class="sc"><span class="sbg bg-act">RATE</span><div class="si">📈</div><div class="sv c-gr" id="d-rate">0%</div><div class="sl">Response Rate</div><div class="ss">Posted / Total</div></div>
-      </div>
-
-      <div class="dg">
-              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">
-        <div class="card" style="padding:0">
-          <div class="cb" style="text-align:center;padding:14px">
-            <div class="ss" style="margin-bottom:4px">🔍 In Review</div>
-            <div style="font-size:28px;font-weight:700;color:#ef4444" id="dash-review">0</div>
-            <div class="ss">Human review needed</div>
-          </div>
-        </div>
-        <div class="card" style="padding:0">
-          <div class="cb" style="text-align:center;padding:14px">
-            <div class="ss" style="margin-bottom:4px">📚 KB Entries</div>
-            <div style="font-size:28px;font-weight:700;color:#8b5cf6" id="dash-kb">0</div>
-            <div class="ss">Knowledge base</div>
-          </div>
-        </div>
-        <div class="card" style="padding:0">
-          <div class="cb" style="text-align:center;padding:14px">
-            <div class="ss" style="margin-bottom:4px">🤖 Automation %</div>
-            <div style="font-size:28px;font-weight:700;color:#059669" id="dash-automation">0%</div>
-            <div class="ss">AI vs manual answers</div>
-          </div>
-        </div>
-        <div class="card" style="padding:0">
-          <div class="cb" style="text-align:center;padding:14px">
-            <div class="ss" style="margin-bottom:4px">⚡ DB Mode</div>
-            <div style="font-size:18px;font-weight:700;color:#2563eb" id="dash-db-mode">—</div>
-            <div class="ss" id="dash-ai-mode">—</div>
-          </div>
-        </div>
-      </div>
+<!-- ══ KNOWLEDGE BASE ══ -->
+<div id="panel-kb" class="panel">
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hdr">➕ Add KB Entry</div>
+    <div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div class="card">
-          <div class="ch"><div class="cht">📂 By Category</div></div>
-          <div class="cb" id="dash-category-chart" style="min-height:100px"></div>
-        </div>
-        <div class="card">
-          <div class="ch"><div class="cht">💬 By Sentiment</div></div>
-          <div class="cb" id="dash-sentiment-chart" style="min-height:100px"></div>
-        </div>
-      </div>
-<div class="card">
-          <div class="ch"><div class="cht">🏪 By Retailer</div></div>
-          <div class="cb" id="d-retailer-chart"><div class="empty"><div class="ei">🔄</div><p>Load data first</p></div></div>
-        </div>
-        <div class="card">
-          <div class="ch"><div class="cht">💰 Automation Savings</div></div>
-          <div class="cb">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin-bottom:14px">
-              <div style="text-align:center;padding:11px;background:#f0fdf4;border-radius:7px;border:1px solid #bbf7d0">
-                <div style="font-size:10px;color:#166534;font-weight:600;margin-bottom:3px">TIME SAVED</div>
-                <div style="font-size:21px;font-weight:700;color:#16a34a" id="d-time">0</div>
-                <div style="font-size:10px;color:#16a34a">hours</div>
-              </div>
-              <div style="text-align:center;padding:11px;background:#eff6ff;border-radius:7px;border:1px solid #bfdbfe">
-                <div style="font-size:10px;color:#1e40af;font-weight:600;margin-bottom:3px">FTE EQUIV</div>
-                <div style="font-size:21px;font-weight:700;color:#2563eb" id="d-fte">0</div>
-                <div style="font-size:10px;color:#2563eb">agents</div>
-              </div>
-              <div style="text-align:center;padding:11px;background:#fffbeb;border-radius:7px;border:1px solid #fde68a">
-                <div style="font-size:10px;color:#92400e;font-weight:600;margin-bottom:3px">AVG RESP</div>
-                <div style="font-size:21px;font-weight:700;color:#d97706" id="d-resp">--</div>
-                <div style="font-size:10px;color:#d97706">minutes</div>
-              </div>
-            </div>
-            <div class="pt2" style="margin-bottom:5px"><div class="pf" id="d-eff-bar" style="width:0%"></div></div>
-            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3)">
-              <span>Automation Rate</span><span id="d-eff-pct" style="font-weight:600;color:var(--blue)">0%</span>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="ch"><div class="cht">📈 Daily Activity</div></div>
-          <div class="cb" id="d-timeline"><div class="empty"><div class="ei">📈</div><p>Load data first</p></div></div>
-        </div>
-        <div class="card">
-          <div class="ch"><div class="cht">📦 Top Products</div></div>
-          <div class="cb" id="d-products"><div class="empty"><div class="ei">📦</div><p>Load data first</p></div></div>
+        <input class="inp" id="kb-title" placeholder="Title *" style="width:100%">
+        <div style="display:flex;gap:8px">
+          <select class="inp" id="kb-cat" style="flex:1">
+            <option value="product_info">Product Info</option><option value="pricing">Pricing</option>
+            <option value="warranty">Warranty</option><option value="compatibility">Compatibility</option>
+            <option value="usage">Usage</option><option value="faq">FAQ</option>
+            <option value="returns">Returns</option><option value="policy">Policy</option>
+          </select>
+          <select class="inp" id="kb-prodcat" style="flex:1">
+            <option value="">All Products</option><option value="tv">TV</option>
+            <option value="refrigerator">Refrigerator</option>
+          </select>
         </div>
       </div>
+      <textarea class="inp" id="kb-content" placeholder="Content *" style="width:100%;min-height:70px;resize:vertical"></textarea>
+      <div style="margin-top:10px"><button class="btn b-bl" onclick="addKBEntry()">+ Add Entry</button></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="toolbar">
+      <input class="inp" id="kb-search" placeholder="Search KB…" style="flex:1" oninput="loadKB()">
+      <select class="inp" id="kb-filter-cat" onchange="loadKB()">
+        <option value="">All Categories</option>
+        <option value="product_info">Product Info</option><option value="warranty">Warranty</option>
+        <option value="compatibility">Compatibility</option><option value="usage">Usage</option>
+        <option value="pricing">Pricing</option><option value="returns">Returns</option>
+        <option value="faq">FAQ</option><option value="policy">Policy</option>
+      </select>
+      <button class="btn b-gh" onclick="loadKB()">↺ Refresh</button>
+      <span class="tag t-bl" id="kb-count">0 entries</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Title</th><th>Category</th><th>Product</th><th>Source</th><th>Content Preview</th><th>Actions</th></tr></thead>
+        <tbody id="kb-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-      <!-- Pipeline -->
-      <div class="card">
-        <div class="ch"><div class="cht">🔄 Pipeline Overview</div></div>
-        <div class="cb">
-          <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:9px;align-items:center;text-align:center;margin-bottom:13px">
-            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:13px">
-              <div style="font-size:10px;color:#1e40af;font-weight:600;margin-bottom:3px">🔗 URLS</div>
-              <div style="font-size:25px;font-weight:700;color:#2563eb" id="p-urls">0</div>
-            </div>
-            <div style="color:#cbd5e1;font-size:18px">→</div>
-            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;padding:13px">
-              <div style="font-size:10px;color:#166534;font-weight:600;margin-bottom:3px">🕷 SCRAPED</div>
-              <div style="font-size:25px;font-weight:700;color:#16a34a" id="p-scraped">0</div>
-            </div>
-            <div style="color:#cbd5e1;font-size:18px">→</div>
-            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:7px;padding:13px">
-              <div style="font-size:10px;color:#92400e;font-weight:600;margin-bottom:3px">✍️ ANSWERED</div>
-              <div style="font-size:25px;font-weight:700;color:#d97706" id="p-answered">0</div>
-            </div>
-            <div style="color:#cbd5e1;font-size:18px">→</div>
-            <div style="background:#fdf4ff;border:1px solid #e9d5ff;border-radius:7px;padding:13px">
-              <div style="font-size:10px;color:#6b21a8;font-weight:600;margin-bottom:3px">📤 POSTED</div>
-              <div style="font-size:25px;font-weight:700;color:#9333ea" id="p-posted">0</div>
-            </div>
-          </div>
-          <div class="pt2" style="height:9px;margin-bottom:5px"><div class="pf" id="p-bar" style="width:0%;height:100%"></div></div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3)">
-            <span>Pipeline Completion</span><span id="p-pct" style="font-weight:600;color:var(--blue)">0%</span>
-          </div>
-        </div>
+<!-- ══ CONFIGURATION ══ -->
+<div id="panel-config" class="panel">
+  <div class="card">
+    <div class="card-hdr">🔌 API Connection</div>
+    <div class="card-body">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input class="inp" id="cfg-api" placeholder="Railway API URL e.g. https://your-app.up.railway.app" style="flex:1">
+        <button class="btn b-bl" onclick="saveConfig()">💾 Save & Connect</button>
+        <button class="btn b-gh" onclick="testConnection()">🔗 Test</button>
+      </div>
+      <div id="cfg-test-result" style="display:none;font-size:12px;padding:8px;border-radius:6px;margin-top:6px"></div>
+      <div style="font-size:11.5px;color:var(--text3);margin-top:6px">After connecting, all tabs load live data from Supabase automatically.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">🤖 AI Settings</div>
+    <div class="card-body" style="font-size:12.5px;color:var(--text2)">
+      <p>AI answering and enrichment is handled server-side via the Railway backend.</p>
+      <p style="margin-top:8px">Confidence threshold: <strong>70%</strong> — questions below this go to Review Queue.</p>
+      <p style="margin-top:4px">Model: <strong>claude-haiku-4-5-20251001</strong> (configurable via Railway env var <code>CLAUDE_MODEL</code>)</p>
+      <p style="margin-top:4px">Rate limit fix: upgrade Anthropic API key to paid tier (Tier 1) at <a href="https://console.anthropic.com/settings/limits" target="_blank" class="lnk">console.anthropic.com</a></p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">🏪 Mock Retailer Pages</div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:12.5px">
+        <a href="https://mock-bestbuy.netlify.app" target="_blank" class="btn b-gh">🔵 Best Buy Mock ↗</a>
+        <a href="https://mock-walm-art.netlify.app" target="_blank" class="btn b-gh">🟢 Walmart Mock ↗</a>
+        <a href="https://mock-amazonde.netlify.app" target="_blank" class="btn b-gh">🟠 Amazon Mock ↗</a>
+        <a href="https://mock-costco.netlify.app" target="_blank" class="btn b-gh">🔴 Costco Mock ↗</a>
       </div>
     </div>
+  </div>
+</div>
 
-
-    <!-- ═══════════════════════ REVIEW QUEUE PANEL ═══════════════════════ -->
-    <div id="panel-review" class="tp" style="display:none">
-      <div class="ph">
-        <div class="st">🔍 Human Review Queue</div>
-        <div class="sa">
-          <select class="inp" id="rv-filter-reason" onchange="renderReviewTable()" style="font-size:12px;padding:5px 9px">
-            <option value="">All Reasons</option>
-            <option value="non_english">Non-English</option>
-            <option value="low_confidence">Low Confidence</option>
-            <option value="no_kb_match">No KB Match</option>
-          </select>
-          <select class="inp" id="rv-filter-retailer" onchange="renderReviewTable()" style="font-size:12px;padding:5px 9px">
-            <option value="">All Retailers</option>
-          </select>
-          <button class="btn b-bl" onclick="refreshReviewQueue()">↺ Refresh</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="cb" style="padding:0">
-          <table class="tbl">
-            <thead><tr>
-              <th>Lang</th><th>Category</th><th>Sentiment</th><th>Confidence</th>
-              <th>Question</th><th>Product</th><th>Retailer</th><th>Review Reason</th><th>Actions</th>
-            </tr></thead>
-            <tbody id="rv-tbody"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text3)">Loading review queue...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <!-- Review/Approve Modal -->
-      <div id="rv-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;overflow-y:auto">
-        <div style="background:var(--card-bg);border-radius:12px;max-width:640px;margin:60px auto;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
-          <div style="font-weight:700;font-size:16px;margin-bottom:16px;color:var(--text)">📝 Review &amp; Approve Answer</div>
-          <div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:14px">
-            <div style="font-size:11px;color:var(--text3);margin-bottom:5px">CUSTOMER QUESTION</div>
-            <div id="rv-modal-question" style="font-size:14px;color:var(--text)"></div>
-          </div>
-          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap" id="rv-modal-meta"></div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:5px">AI DRAFT ANSWER <span id="rv-modal-confidence" style="font-weight:700;color:var(--blue)"></span></div>
-          <textarea id="rv-modal-answer" class="inp" rows="5" style="width:100%;resize:vertical;font-size:13px" placeholder="Edit or write answer..."></textarea>
-          <div style="display:flex;align-items:center;gap:8px;margin:10px 0">
-            <input type="checkbox" id="rv-modal-add-kb" checked>
-            <label for="rv-modal-add-kb" style="font-size:12px;color:var(--text2)">Add approved answer to Knowledge Base</label>
-          </div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-            <button class="btn b-gh" onclick="document.getElementById('rv-modal').style.display='none'">Cancel</button>
-            <button class="btn b-re" onclick="rejectReviewItem()">✕ Skip</button>
-            <button class="btn b-gr" onclick="approveReviewItem()">✓ Approve &amp; Post</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════════════════ KNOWLEDGE BASE PANEL ═══════════════════════ -->
-    <div id="panel-kb" class="tp" style="display:none">
-      <div class="ph">
-        <div class="st">📚 Knowledge Base</div>
-        <div class="sa">
-          <input class="inp" id="kb-search" placeholder="Search entries..." style="width:180px" oninput="renderKBTable()">
-          <select class="inp" id="kb-filter-cat" onchange="renderKBTable()" style="font-size:12px;padding:5px 9px">
-            <option value="">All Categories</option>
-            <option value="product_info">Product Info</option>
-            <option value="pricing">Pricing</option>
-            <option value="warranty">Warranty</option>
-            <option value="compatibility">Compatibility</option>
-            <option value="usage">Usage</option>
-            <option value="complaint">Complaint</option>
-            <option value="returns">Returns</option>
-            <option value="faq">FAQ</option>
-            <option value="policy">Policy</option>
-            <option value="approved_answer">Approved Answer</option>
-          </select>
-          <button class="btn b-bl" onclick="openKBAddModal()">＋ Add Entry</button>
-          <button class="btn b-gh" onclick="loadKBEntries()">↺ Refresh</button>
-        </div>
-      </div>
-      <div class="card" style="margin-bottom:12px">
-        <div class="cb" style="padding:10px 14px">
-          <div style="display:flex;gap:16px;font-size:12px;color:var(--text2)">
-            <span>Total entries: <strong id="kb-total">0</strong></span>
-            <span>Active: <strong id="kb-active">0</strong></span>
-            <span>Approved answers: <strong id="kb-approved">0</strong></span>
-            <span style="margin-left:auto;color:var(--text3)">AI uses this KB to generate answers. Higher quality entries → better AI responses.</span>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="cb" style="padding:0">
-          <table class="tbl">
-            <thead><tr>
-              <th>Title</th><th>Category</th><th>Product Type</th><th>Source</th><th>Content Preview</th><th>Actions</th>
-            </tr></thead>
-            <tbody id="kb-tbody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">Loading knowledge base...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <!-- KB Add/Edit Modal -->
-      <div id="kb-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;overflow-y:auto">
-        <div style="background:var(--card-bg);border-radius:12px;max-width:620px;margin:60px auto;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
-          <div style="font-weight:700;font-size:16px;margin-bottom:16px;color:var(--text)" id="kb-modal-title">Add KB Entry</div>
-          <input type="hidden" id="kb-modal-id">
-          <div class="cfg-grid">
-            <div class="cfg-item" style="grid-column:1/-1">
-              <div class="cfg-label">Title *</div>
-              <input class="inp" id="kb-modal-entry-title" placeholder="Short descriptive title e.g. Hisense TV HDMI 2.1 Compatibility">
-            </div>
-            <div class="cfg-item">
-              <div class="cfg-label">Category *</div>
-              <select class="inp" id="kb-modal-entry-cat">
-                <option value="product_info">Product Info</option>
-                <option value="pricing">Pricing</option>
-                <option value="warranty">Warranty</option>
-                <option value="compatibility">Compatibility</option>
-                <option value="usage">Usage</option>
-                <option value="complaint">Complaint</option>
-                <option value="returns">Returns</option>
-                <option value="faq">FAQ</option>
-                <option value="policy">Policy</option>
-              </select>
-            </div>
-            <div class="cfg-item">
-              <div class="cfg-label">Product Type (optional)</div>
-              <select class="inp" id="kb-modal-entry-prodcat">
-                <option value="">All Products</option>
-                <option value="tv">TV</option>
-                <option value="refrigerator">Refrigerator</option>
-                <option value="air_cooler">Air Conditioner</option>
-                <option value="washing_machine">Washing Machine</option>
-                <option value="gas_range">Gas Range</option>
-                <option value="microwave">Microwave</option>
-                <option value="home_appliance">Wine Cooler / Appliance</option>
-              </select>
-            </div>
-            <div class="cfg-item" style="grid-column:1/-1">
-              <div class="cfg-label">Content * (the knowledge text the AI will use)</div>
-              <textarea class="inp" id="kb-modal-entry-content" rows="5" style="resize:vertical" placeholder="Detailed content the AI will reference when answering related questions..."></textarea>
-            </div>
-            <div class="cfg-item" style="grid-column:1/-1">
-              <div class="cfg-label">Tags (comma-separated)</div>
-              <input class="inp" id="kb-modal-entry-tags" placeholder="e.g. hdmi, gaming, ps5, 4k">
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-            <button class="btn b-gh" onclick="document.getElementById('kb-modal').style.display='none'">Cancel</button>
-            <button class="btn b-bl" onclick="saveKBEntry()">💾 Save Entry</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div><!-- /pb -->
-</div><!-- /mw -->
-
-<div class="toasts" id="toasts"></div>
+</div><!-- end main -->
 
 <script>
-// Timeout-safe fetch — avoids AbortSignal cloning error in sandboxed environments
-async function fetchWithTimeout(url, options, ms) {
-  ms = ms || 8000;
-  options = options || {};
-  return Promise.race([
-    fetch(url, options),
-    new Promise(function(_, reject) {
-      setTimeout(function() { reject(new Error('timeout (' + (ms/1000) + 's)')); }, ms);
-    })
-  ]);
-}
-// ─── CENTRALIZED ERROR & NULL HELPERS ────────────────────────
-// Show error to user — never silently swallow
-function showErr(context, err) {
-  const msg = err && err.message ? err.message : String(err || 'Unknown error');
-  console.error('[' + context + ']', msg);
-  toast(context + ': ' + msg.substring(0, 80), 'e');
-}
-
-// Safe property access — avoids TypeError on null chains
-function safeGet(obj, ...keys) {
-  let cur = obj;
-  for (const k of keys) {
-    if (cur == null || cur === undefined) return undefined;
-    cur = cur[k];
-  }
-  return cur;
-}
-
-// Safe array — always returns array, never throws
-function safeArr(val) {
-  return Array.isArray(val) ? val : [];
-}
-
-// Validate API response has expected shape
-function isApiOk(data) {
-  return data && data.success === true && data.data !== undefined;
-}
-
-
-// ═══════════════════════════════════════════════
-// CONFIG — all tuneable, no hardcoded values
-// ═══════════════════════════════════════════════
-const CFG = {
-  username: 'Operator',
-  role: 'Q&A Agent',
-  client: '',
-  apiBaseUrl: '',        // Mock retailer backend URL e.g. https://your-app.up.railway.app
-  scrapeInterval: 240,   // seconds
-  postInterval: 420,     // seconds
-  timePerQ: 8,           // minutes per manual answer
-  workHrs: 8,            // hours/day
-  aiFallback: 'Thank you for your question! Our team has reviewed your inquiry. For the most accurate information, please contact our support team. We appreciate your interest!',
-  aiRules: [],           // [{keyword, answer}] — loaded from config panel
-  retailers: ['BESTBUY','WALMART','AMAZON','COSTCO','TARGET','OTHER']
+// ═══ CONFIG ═══════════════════════════════════════════════
+let API = localStorage.getItem('qa_api_base') || '';
+const PAGE_META = {
+  dashboard:{title:'Analytics',sub:'Live stats from Supabase'},
+  answers:  {title:'Answer Queue',sub:'Unanswered and pending AI responses'},
+  post:     {title:'Post Manager',sub:'Approved answers ready to post to mock pages'},
+  review:   {title:'Review Queue',sub:'Low-confidence or flagged questions needing human review'},
+  kb:       {title:'Knowledge Base',sub:'RAG knowledge entries powering AI answers'},
+  config:   {title:'Configuration',sub:'API connection and settings'}
 };
 
-// ═══════════════════════════════════════════════
-// STATE — all runtime data, zero hardcodes
-// ═══════════════════════════════════════════════
-const S = {
-  urls: [],
-  questions: [],
-  scrapeLog: [],
-  postLog: [],
-  autoScrape: true,
-  autoPost: true,
-  liveMode: false,
-  scrapeTimer: CFG.scrapeInterval,
-  postTimer: CFG.postInterval,
-  sessionNew: 0,
-  sessionSkipped: 0,
-  uploadedHeaders: [],
-  uploadedRows: []
-};
+// Per-page state
+let AQ_PAGE = 1, AQ_DATA = [], AQ_TOTAL = 0;
+let RV_DATA = [], PM_DATA = [], KB_DATA = [];
+// In-memory edits (also saved to localStorage)
+let LOCAL_EDITS = JSON.parse(localStorage.getItem('qa_local_edits')||'{}');
 
-// ═══════════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════════
-const uid = () => Math.random().toString(36).substr(2,9);
-const nowT = () => new Date().toLocaleTimeString();
-const fmtD = d => d ? new Date(d).toLocaleDateString() : '—';
-const sleep = ms => new Promise(r=>setTimeout(r,ms));
-const RT = {BESTBUY:'t-bl',WALMART:'t-gr',AMAZON:'t-am',COSTCO:'t-pu',TARGET:'t-re',OTHER:'t-gy'};
-const RC = {BESTBUY:'#3b82f6',WALMART:'#10b981',AMAZON:'#f59e0b',COSTCO:'#8b5cf6',TARGET:'#ef4444',OTHER:'#94a3b8'};
-
-function tagClass(r){ return RT[r] || 't-gy'; }
-function tagColor(r){ return RC[r] || '#94a3b8'; }
-
-function toast(msg, type='ok'){
+// ═══ UTILS ════════════════════════════════════════════════
+function toast(msg,type='ok'){
   const el=document.createElement('div');
-  el.className=`toast${type==='w'?' w':type==='e'?' e':''}`;
+  el.className='toast'+(type==='w'?' w':type==='e'?' e':'');
   el.innerHTML=`<span>${type==='ok'?'✅':type==='w'?'⚠️':'❌'}</span> ${msg}`;
   document.getElementById('toasts').appendChild(el);
-  setTimeout(()=>el.remove(),3000);
+  setTimeout(()=>el.remove(),3500);
 }
-
-function addLog(logId, msg, type='i'){
-  const arr = logId==='scrape-log' ? S.scrapeLog : S.postLog;
-  arr.unshift({time:nowT(),msg,type});
-  document.getElementById(logId).innerHTML = arr.slice(0,60).map(l=>
-    `<div class="lr"><span class="lt">${l.time}</span><span class="l${l.type}">${l.msg}</span></div>`
-  ).join('');
+async function api(path,opts={}){
+  if(!API){toast('Set API URL in ⚙️ Config first','w');throw new Error('No API URL');}
+  const ctrl=new AbortController();
+  const t=setTimeout(()=>ctrl.abort(),12000);
+  try{
+    const r=await fetch(API+path,{headers:{'Content-Type':'application/json'},signal:ctrl.signal,...opts});
+    clearTimeout(t);
+    if(!r.ok){const e=await r.json().catch(()=>({error:'HTTP '+r.status}));throw new Error(e.error||'HTTP '+r.status);}
+    return await r.json();
+  }catch(e){
+    clearTimeout(t);
+    if(e.name==='AbortError') throw new Error('Request timeout — check Railway is running');
+    throw e;
+  }
 }
-function clearLog(id){ if(id==='scrape-log') S.scrapeLog=[]; else S.postLog=[]; document.getElementById(id).innerHTML=''; }
+function saveLocalEdits(){localStorage.setItem('qa_local_edits',JSON.stringify(LOCAL_EDITS));}
+function confBadge(c){
+  const pct=Math.round(c*100);
+  const cls=pct>=70?'conf-hi':pct>=40?'conf-mid':'conf-lo';
+  return `<span class="${cls}">${pct}%</span>`;
+}
+function langFlag(lang){
+  const flags={en:'🇺🇸',fr:'🇫🇷',es:'🇪🇸',de:'🇩🇪',it:'🇮🇹',pt:'🇧🇷',ja:'🇯🇵',zh:'🇨🇳',ko:'🇰🇷',ar:'🇸🇦',hi:'🇮🇳'};
+  return flags[lang]||'🌐';
+}
+function catBadge(c){
+  const cols={product_info:'t-bl',pricing:'t-pu',warranty:'t-te',compatibility:'t-gr',usage:'t-am',complaint:'t-re',returns:'t-gy',other:'t-gy'};
+  return `<span class="tag ${cols[c]||'t-gy'}">${(c||'').replace('_',' ')}</span>`;
+}
+function sentBadge(s){
+  const m={positive:'t-gr',neutral:'t-bl',negative:'t-re'};
+  return `<span class="tag ${m[s]||'t-bl'}">${s||'neutral'}</span>`;
+}
+function retailerTag(r){
+  const m={BESTBUY:'t-bl',WALMART:'t-gr',AMAZON:'t-am',COSTCO:'t-re'};
+  return `<span class="tag ${m[r]||'t-gy'}">${r}</span>`;
+}
+function viewLink(productUrl,label='↗ View'){
+  if(!productUrl) return '—';
+  return `<a href="${productUrl}" target="_blank" class="lnk btn b-gh" style="padding:3px 8px;font-size:11px">${label}</a>`;
+}
+function fmtDate(d){return d?new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'—';}
 
-// ═══════════════════════════════════════════════
-// TABS
-// ═══════════════════════════════════════════════
-const PAGE = {
-  input:     {title:'URL Manager', sub:'Add and manage product Q&A page URLs across all retail channels'},
-  scrape:    {title:'Q&A Scraper', sub:'Pull new customer questions — excludes AI-generated and already-answered'},
-  answers:   {title:'Answer Queue', sub:'Review pending questions and enter or AI-generate responses'},
-  submit:    {title:'Post Manager', sub:'Submit answers back to product pages — duplicate-safe, POC mode active'},
-  dashboard: {title:'Performance Dashboard', sub:'Automation metrics, efficiency analytics and pipeline status'},
-  config:    {title:'Configuration', sub:'Customize operators, timers, AI rules and retailer definitions'}
-};
-
+// ═══ TAB NAVIGATION ═══════════════════════════════════════
 function goTab(name){
-  document.querySelectorAll('.tp').forEach(p=>p.style.display='none');
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
-  document.getElementById('panel-'+name).style.display='block';
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('nav-'+name).classList.add('active');
-  document.getElementById('page-title').textContent = PAGE[name].title;
-  document.getElementById('page-sub').textContent = PAGE[name].sub;
-  if(name==='dashboard') renderDashboard();
-  if(name==='answers') renderAnswerTable();
-  if(name==='submit') renderPostTable();
-  if(name==='config') renderConfigPanel();
-
-  if(name==='review') refreshReviewQueue();
-  if(name==='kb')     loadKBEntries();
-  if(name==='dashboard') loadDashboardStats();
+  document.getElementById('panel-'+name).classList.add('active');
+  const m=PAGE_META[name]||{};
+  document.getElementById('page-title').textContent=m.title||name;
+  document.getElementById('page-sub').textContent=m.sub||'';
+  if(name==='dashboard') loadDashboard();
+  else if(name==='answers') loadAnswerQueue();
+  else if(name==='post') loadPostQueue();
+  else if(name==='review') loadReviewQueue();
+  else if(name==='kb') loadKB();
 }
 
-// ═══════════════════════════════════════════════
-// CLOCK
-// ═══════════════════════════════════════════════
-setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleTimeString(),1000);
-
-// ═══════════════════════════════════════════════
-// CONFIG PANEL
-// ═══════════════════════════════════════════════
-function renderConfigPanel(){
-  document.getElementById('cfg-username').value = CFG.username;
-  document.getElementById('cfg-api-url').value = CFG.apiBaseUrl || localStorage.getItem('qa_api_base') || '';
-  const _ck=document.getElementById('cfg-claude-key'); if(_ck) _ck.value=localStorage.getItem('qa_claude_key')||CFG.claudeKey||'';
-  document.getElementById('cfg-role').value = CFG.role;
-  document.getElementById('cfg-client').value = CFG.client;
-  document.getElementById('cfg-retailer').value = '';
-  document.getElementById('cfg-scrape-int').value = CFG.scrapeInterval;
-  document.getElementById('cfg-post-int').value = CFG.postInterval;
-  document.getElementById('cfg-time-per-q').value = CFG.timePerQ;
-  document.getElementById('cfg-work-hrs').value = CFG.workHrs;
-  document.getElementById('cfg-ai-fallback').value = CFG.aiFallback;
-  renderAIRules();
-  renderRetailerConfig();
+// ═══ DASHBOARD ════════════════════════════════════════════
+async function loadDashboard(){
+  if(!API) return;
+  try{
+    const d = await api('/api/admin/stats');
+    const s = d.data||{};
+    document.getElementById('d-total').textContent = s.total_questions??'—';
+    document.getElementById('d-answered').textContent = s.answered??'—';
+    document.getElementById('d-unanswered').textContent = s.unanswered??'—';
+    document.getElementById('d-review').textContent = s.review??'—';
+    document.getElementById('d-kb').textContent = s.kb_entries??'—';
+    document.getElementById('d-products').textContent = s.total_products??'—';
+    const total = s.total_questions||0;
+    const ans = s.answered||0;
+    const autoPct = total>0?Math.round(ans/total*100):0;
+    document.getElementById('d-auto-pct').textContent = autoPct+'%';
+    document.getElementById('d-auto-bar').style.width = autoPct+'%';
+    document.getElementById('d-ai-status').textContent = (s.ai_configured?'🤖 AI On':'⚠️ AI Off')+' / '+(s.db_connected?'🟢 DB':'🔴 DB');
+    // Charts
+    renderBarChart('d-retailer-chart', s.by_retailer ? Object.fromEntries(Object.entries(s.by_retailer).map(([k,v])=>[v.name||k,v.questions||0])) : {}, ['#3b82f6','#10b981','#f59e0b','#ef4444']);
+    renderBarChart('d-category-chart', s.by_category||{}, null);
+    renderBarChart('d-sentiment-chart', s.by_sentiment||{}, {positive:'#10b981',neutral:'#3b82f6',negative:'#ef4444'});
+    // Pipeline
+    const pct = total>0?Math.round(ans/total*100):0;
+    document.getElementById('d-pipeline').innerHTML = `
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Answer completion rate</div>
+      <div class="pbar" style="height:10px"><div class="pbar-fill" style="background:var(--green);width:${pct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:4px"><span>${ans} answered</span><span>${pct}%</span><span>${total} total</span></div>
+      <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+        <div style="background:#f0fdf4;padding:8px 10px;border-radius:6px"><span style="color:#166534;font-weight:600">${s.answered||0}</span> auto-approved answers</div>
+        <div style="background:#fef2f2;padding:8px 10px;border-radius:6px"><span style="color:#991b1b;font-weight:600">${s.review||0}</span> awaiting review</div>
+      </div>`;
+    // Update badges
+    updateBadges(s.unanswered||0, s.review||0);
+  }catch(e){toast('Dashboard error: '+e.message,'e');}
 }
 
-function saveConfig(){
-  CFG.username = document.getElementById('cfg-username').value.trim() || 'Operator';
-  CFG.apiBaseUrl = (document.getElementById('cfg-api-url').value || '').trim().replace(/\/+$/, '');
-  if(CFG.apiBaseUrl) localStorage.setItem('qa_api_base', CFG.apiBaseUrl);
-  CFG.role = document.getElementById('cfg-role').value.trim() || 'Q&A Agent';
-  CFG.client = document.getElementById('cfg-client').value.trim();
-  CFG.scrapeInterval = parseInt(document.getElementById('cfg-scrape-int').value) || 240;
-  CFG.postInterval = parseInt(document.getElementById('cfg-post-int').value) || 420;
-  CFG.timePerQ = parseInt(document.getElementById('cfg-time-per-q').value) || 8;
-  CFG.workHrs = parseInt(document.getElementById('cfg-work-hrs').value) || 8;
-  CFG.aiFallback = document.getElementById('cfg-ai-fallback').value;
-  // Collect AI rules
-  CFG.aiRules = [];
-  document.querySelectorAll('.ai-rule-row').forEach(row=>{
-    const k = row.querySelector('.ai-kw').value.trim();
-    const v = row.querySelector('.ai-ans').value.trim();
-    if(k && v) CFG.aiRules.push({keyword:k, answer:v});
-  });
-  // Collect retailers
-  CFG.retailers = [];
-  document.querySelectorAll('.retailer-inp').forEach(inp=>{
-    if(inp.value.trim()) CFG.retailers.push(inp.value.trim().toUpperCase());
-  });
-  if(!CFG.retailers.length) CFG.retailers = ['OTHER'];
-  // Reset timers
-  S.scrapeTimer = CFG.scrapeInterval;
-  S.postTimer = CFG.postInterval;
-  // Update UI
-  document.getElementById('sb-username').textContent = CFG.username;
-  document.getElementById('av-initials').textContent = CFG.username.substring(0,2).toUpperCase();
-  document.getElementById('page-role').textContent = 'Role: ' + CFG.role;
-  populateRetailerDropdowns();
-  updateTimerLabels();
-  if(CFG.client) document.getElementById('dash-title').textContent = CFG.client + ' — Performance Dashboard';
-  const _ck2=document.getElementById('cfg-claude-key'); if(_ck2&&_ck2.value.trim()){CFG.claudeKey=_ck2.value.trim();localStorage.setItem('qa_claude_key',CFG.claudeKey);}
-  toast('Configuration saved!');
-}
-
-function renderAIRules(){
-  const c = document.getElementById('ai-kv-container');
-  c.innerHTML = CFG.aiRules.map((r,i)=>`
-    <div class="ai-rule-row" style="display:grid;grid-template-columns:180px 1fr auto;gap:8px;margin-bottom:8px;align-items:start">
-      <input class="inp ai-kw" value="${r.keyword}" placeholder="Keyword (e.g. Bluetooth)">
-      <textarea class="inp ai-ans" rows="2">${r.answer}</textarea>
-      <button class="btn b-re" style="padding:5px 9px;font-size:11px" onclick="removeAIRule(${i})">✕</button>
-    </div>`).join('');
-}
-function addAIRule(){ CFG.aiRules.push({keyword:'',answer:''}); renderAIRules(); }
-function removeAIRule(i){ CFG.aiRules.splice(i,1); renderAIRules(); }
-
-function renderRetailerConfig(){
-  document.getElementById('retailer-container').innerHTML = CFG.retailers.map((r,i)=>`
-    <div style="display:flex;gap:8px;margin-bottom:7px;align-items:center">
-      <input class="inp retailer-inp" value="${r}" style="width:160px">
-      <button class="btn b-re" style="padding:5px 9px;font-size:11px" onclick="removeRetailer(${i})">✕</button>
-    </div>`).join('');
-}
-function addRetailer(){ CFG.retailers.push(''); renderRetailerConfig(); }
-function removeRetailer(i){ CFG.retailers.splice(i,1); renderRetailerConfig(); }
-
-
-function updateTimerLabels(){
-  const sm=Math.round(CFG.scrapeInterval/60);
-  const pm=Math.round(CFG.postInterval/60);
-  document.getElementById('scrape-int-label').textContent=`Every ${sm} min${sm!==1?'s':''}`;
-  document.getElementById('post-int-label').textContent=`Every ${pm} min${pm!==1?'s':''}`;
-}
-
-// ═══════════════════════════════════════════════
-// FILE UPLOAD
-// ═══════════════════════════════════════════════
-function handleDrop(ev){
-  ev.preventDefault();
-  document.getElementById('upload-zone').classList.remove('drag');
-  const file = ev.dataTransfer.files[0];
-  if(file) handleFileUpload(file);
-}
-
-function handleFileUpload(file){
-  if(!file) return;
-  const ext = file.name.split('.').pop().toLowerCase();
-  const reader = new FileReader();
-
-  if(ext==='csv'){
-    reader.onload = e => parseCSV(e.target.result, file.name);
-    reader.readAsText(file);
-  } else if(['xlsx','xls'].includes(ext)){
-    reader.onload = e => parseExcel(e.target.result, file.name);
-    reader.readAsArrayBuffer(file);
-  } else {
-    toast('Unsupported file type. Use .xlsx, .xls or .csv', 'e');
-  }
-}
-
-function parseExcel(buffer, name){
-  try {
-    const wb = XLSX.read(buffer, {type:'arraybuffer'});
-    // Try each sheet, pick the one with URL-like content
-    let bestSheet = null, bestRows = [];
-    wb.SheetNames.forEach(sn=>{
-      const ws = wb.Sheets[sn];
-      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-      if(rows.length>1 && rows[0].length>1) {
-        if(!bestSheet || rows.length > bestRows.length){ bestSheet=sn; bestRows=rows; }
-      }
-    });
-    if(!bestRows.length){ toast('No data found in Excel file','e'); return; }
-    processUploadedRows(bestRows, name);
-  } catch(e){ toast('Error reading Excel: '+e.message,'e'); }
-}
-
-function parseCSV(text, name){
-  const lines = text.trim().split('\n');
-  const rows = lines.map(l=>{
-    // Handle quoted CSV fields
-    const r=[]; let cur='',inQ=false;
-    for(const ch of l+','){
-      if(ch==='"'){ inQ=!inQ; }
-      else if(ch===','&&!inQ){ r.push(cur.trim()); cur=''; }
-      else { cur+=ch; }
-    }
-    return r;
-  });
-  processUploadedRows(rows, name);
-}
-
-function processUploadedRows(rows, name){
-  if(rows.length<2){ toast('File appears empty','w'); return; }
-  S.uploadedHeaders = rows[0].map(h=>(h||'').toString().trim());
-  S.uploadedRows = rows.slice(1).filter(r=>r.some(c=>c!==''));
-  document.getElementById('upload-summary').textContent =
-    `📁 Loaded: ${name} — ${S.uploadedRows.length} rows, ${S.uploadedHeaders.length} columns`;
-  document.getElementById('upload-preview').style.display='block';
-  showColumnMapper();
-}
-
-// Required system fields and their auto-detect patterns
-const FIELD_PATTERNS = {
-  url:     ['url','link','page','href','address'],
-  product: ['product','name','title','item','description'],
-  retailer:['retailer','store','site','channel','website'],
-  model:   ['model','modelno','model_no','modelnumber'],
-  sku:     ['sku','id','itemid','productid','asin','upc']
-};
-
-function detectColumn(fieldName, headers){
-  const patterns = FIELD_PATTERNS[fieldName] || [];
-  for(const h of headers){
-    const hl = h.toLowerCase().replace(/[^a-z]/g,'');
-    if(patterns.some(p=>hl.includes(p))) return h;
-  }
-  return '';
-}
-
-function showColumnMapper(){
-  const mapper = document.getElementById('col-mapper');
-  const rows = document.getElementById('mapper-rows');
-  const fields = [
-    {key:'url',label:'URL *',required:true},
-    {key:'product',label:'Product Name'},
-    {key:'retailer',label:'Retailer'},
-    {key:'model',label:'Model No'},
-    {key:'sku',label:'SKU'}
-  ];
-  const opts = ['<option value="">(skip)</option>'].concat(S.uploadedHeaders.map(h=>`<option value="${h}">${h}</option>`)).join('');
-  rows.innerHTML = fields.map(f=>{
-    const detected = detectColumn(f.key, S.uploadedHeaders);
-    const selOpts = opts.replace(`value="${detected}"`,`value="${detected}" selected`);
-    return `<div class="cm-row">
-      <span class="cm-label">${f.label}</span>
-      <select class="inp" id="map-${f.key}" style="width:200px">${selOpts}</select>
-      <span style="font-size:11px;color:var(--text3)">${detected?'Auto-detected: '+detected:''}</span>
+function renderBarChart(elId, data, colors){
+  const el=document.getElementById(elId);
+  if(!el) return;
+  const entries = Object.entries(data||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length){el.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 0">No data yet</div>';return;}
+  const max = Math.max(...entries.map(([,v])=>v));
+  const palette=['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#f97316','#84cc16'];
+  el.innerHTML = entries.map(([k,v],i)=>{
+    const pct = max>0?Math.round(v/max*100):0;
+    let col = palette[i%palette.length];
+    if(colors && typeof colors==='object' && !Array.isArray(colors)) col=colors[k]||col;
+    else if(Array.isArray(colors)) col=colors[i%colors.length]||col;
+    return `<div class="bar-row">
+      <div class="bar-row-hdr"><span style="color:var(--text2);font-weight:500">${k.replace(/_/g,' ')}</span><span style="color:var(--text3)">${v}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${col}"></div></div>
     </div>`;
   }).join('');
-  mapper.style.display='block';
 }
 
-function applyMapping(){
-  const urlCol = document.getElementById('map-url').value;
-  if(!urlCol){ toast('URL column is required','w'); return; }
-  const prodCol = document.getElementById('map-product').value;
-  const retCol  = document.getElementById('map-retailer').value;
-  const modCol  = document.getElementById('map-model').value;
-  const skuCol  = document.getElementById('map-sku').value;
-
-  const hi = k => S.uploadedHeaders.indexOf(k);
-  let added=0, skipped=0;
-
-  S.uploadedRows.forEach(row=>{
-    const url = (row[hi(urlCol)]||'').toString().trim();
-    if(!url || !url.startsWith('http')){ skipped++; return; }
-    const exists = S.urls.find(u=>u.url===url);
-    if(exists){ skipped++; return; }
-    const retailer = retCol ? (row[hi(retCol)]||'').toString().trim().toUpperCase() : guessRetailer(url);
-    S.urls.push({
-      id:uid(),
-      url,
-      product: prodCol ? (row[hi(prodCol)]||'').toString().trim() : extractProductName(url),
-      retailer: retailer || 'OTHER',
-      model: modCol ? (row[hi(modCol)]||'').toString().trim() : '',
-      sku: skuCol ? (row[hi(skuCol)]||'').toString().trim() : '',
-      status:'pending', lastScraped:null, qCount:0
-    });
-    added++;
-  });
-
-  document.getElementById('col-mapper').style.display='none';
-  renderUrlTable();
-  toast(`Imported ${added} URLs (${skipped} skipped/duplicate)`);
+function updateBadges(unanswered, review){
+  const ab=document.getElementById('ans-badge');
+  const rb=document.getElementById('rv-badge');
+  if(unanswered>0){ab.textContent=unanswered;ab.style.display='inline';}else{ab.style.display='none';}
+  if(review>0){rb.textContent=review;rb.style.display='inline';}else{rb.style.display='none';}
 }
 
-function guessRetailer(url){
-  if(url.includes('bestbuy')) return 'BESTBUY';
-  if(url.includes('walmart')) return 'WALMART';
-  if(url.includes('amazon')) return 'AMAZON';
-  if(url.includes('costco')) return 'COSTCO';
-  if(url.includes('target')) return 'TARGET';
-  return 'OTHER';
-}
-
-function extractProductName(url){
-  try{ return decodeURIComponent(url.split('/').slice(-2,-1)[0]).replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()).substring(0,50); }
-  catch{ return url.substring(0,40)+'...'; }
-}
-
-// ═══════════════════════════════════════════════
-// URL MANAGEMENT
-// ═══════════════════════════════════════════════
-function addUrl(){
-  const url = document.getElementById('newUrl').value.trim();
-  if(!url){ toast('Enter a URL','w'); return; }
-  if(S.urls.find(u=>u.url===url)){ toast('URL already exists','w'); return; }
-  S.urls.push({
-    id:uid(), url,
-    product: document.getElementById('newProduct').value.trim() || extractProductName(url),
-    retailer: document.getElementById('newRetailer').value || 'OTHER',
-    model: document.getElementById('newModel').value.trim(),
-    sku: document.getElementById('newSku').value.trim(),
-    status:'pending', lastScraped:null, qCount:0
-  });
-  ['newUrl','newProduct','newModel','newSku'].forEach(id=>document.getElementById(id).value='');
-  renderUrlTable(); toast('URL added!');
-}
-
-function removeUrl(id){ S.urls=S.urls.filter(u=>u.id!==id); renderUrlTable(); }
-function clearUrls(){ if(!confirm('Clear all URLs?'))return; S.urls=[]; renderUrlTable(); }
-
-function exportUrls(){
-  const hdr = 'Retailer,Product,Model,SKU,URL,Status,Last Scraped,Q Count';
-  const rows = S.urls.map(u=>`"${u.retailer}","${u.product}","${u.model||''}","${u.sku||''}","${u.url}","${u.status}","${u.lastScraped||''}","${u.qCount}"`);
-  dlCSV([hdr,...rows].join('\n'), 'cx_url_registry.csv');
-  toast('Exported!');
-}
-
-function renderUrlTable(){
-  document.getElementById('url-count-badge').textContent = S.urls.length+' URLs';
-  const tb = document.getElementById('url-tbody');
-  if(!S.urls.length){
-    tb.innerHTML=`<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:28px">No URLs yet. Upload an Excel file or add manually above.</td></tr>`;
-    return;
+// ═══ ANSWER QUEUE ══════════════════════════════════════════
+async function loadAnswerQueue(page){
+  if(page) AQ_PAGE=page;
+  const retailer=(document.getElementById('aq-filter-retailer').value||'').toLowerCase();
+  const status=document.getElementById('aq-filter-status').value||'';
+  const cat=document.getElementById('aq-filter-cat').value||'';
+  let path=`/api/admin/questions?page=${AQ_PAGE}&limit=20`;
+  if(retailer) path+=`&retailer=${retailer}`;
+  if(status) path+=`&status=${status}`;
+  if(cat) path+=`&category=${cat}`;
+  try{
+    const d = await api(path);
+    AQ_DATA = d.data||[];
+    AQ_TOTAL = d.total||0;
+    // Apply local saved edits
+    AQ_DATA.forEach(q=>{if(LOCAL_EDITS[q.id]) q._localAnswer=LOCAL_EDITS[q.id];});
+    renderAnswerQueue();
+    renderAQPagination(d.total,d.page,d.limit);
+    // Update stat cards
+    const stats = await api('/api/admin/stats');
+    const s=stats.data||{};
+    document.getElementById('aq-pending').textContent=s.unanswered||0;
+    document.getElementById('aq-answered').textContent=s.answered||0;
+    document.getElementById('aq-review').textContent=s.review||0;
+    // AI count from local approximate
+    updateBadges(s.unanswered||0,s.review||0);
+  }catch(e){
+    document.getElementById('aq-tbody').innerHTML=`<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--red)">${e.message}</td></tr>`;
   }
-  tb.innerHTML = S.urls.map((u,i)=>`
-    <tr>
-      <td style="color:var(--text3)">${i+1}</td>
-      <td><span class="tag ${tagClass(u.retailer)}">${u.retailer}</span></td>
-      <td style="color:var(--text);font-weight:500;max-width:180px" title="${u.product}">${u.product.substring(0,38)}${u.product.length>38?'...':''}</td>
-      <td style="color:var(--text3);font-size:11.5px">${u.model||'—'}</td>
-      <td style="color:var(--text3);font-size:11.5px">${u.sku||'—'}</td>
-      <td><a href="${u.url}" target="_blank" class="lnk" title="${u.url}">${u.url.substring(0,48)}...</a></td>
-      <td><span class="tag ${u.status==='scraped'?'t-gr':'t-am'}">${u.status}</span></td>
-      <td style="color:var(--text3);font-size:11px">${u.lastScraped?new Date(u.lastScraped).toLocaleString():'—'}</td>
-      <td style="font-weight:600;color:var(--blue)">${u.qCount}</td>
-      <td style="display:flex;gap:5px">
-        <button class="btn b-gh" style="padding:4px 9px;font-size:11px" onclick="scrapeOne('${u.id}')">🕷</button>
-        <button class="btn b-re" style="padding:4px 9px;font-size:11px" onclick="removeUrl('${u.id}')">✕</button>
-      </td>
-    </tr>`).join('');
 }
 
-// ═══════════════════════════════════════════════
-// ═══════════════════════════════════════════════
-// SCRAPER — API-first, simulated fallback
-// ═══════════════════════════════════════════════
-function scrapeOne(urlId){ scrapeUrls([S.urls.find(u=>u.id===urlId)].filter(Boolean)); }
-
-function runScraper(){
-  if(!S.urls.length){ toast('Add URLs first','w'); return; }
-  scrapeUrls(S.urls.filter(u=>u.status!=='scraping'));
-}
-
-function scrapeUrls(urls){
-  if(!urls.length) return;
-  if(CFG.apiBaseUrl){ scrapeViaApi(urls); } else { simulateScrape(urls); }
-}
-
-async function scrapeViaApi(urls){
-  const btn=document.getElementById('scrape-btn');
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Fetching from API...';
-  addLog('scrape-log',`🔌 API Mode — connecting to ${CFG.apiBaseUrl}`,'i');
-
-  for(let idx=0; idx<urls.length; idx++){
-    const u=urls[idx];
-    u.status='scraping';
-    addLog('scrape-log',`[${u.retailer}] Fetching questions for: ${u.product.substring(0,35)}...`,'i');
-    try {
-      const productId = u.apiProductId || u.sku;
-      const resp = await fetchWithTimeout(`${CFG.apiBaseUrl}/api/products/${productId}/questions?status=unanswered&limit=50`, {}, 8000);
-      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const data = await resp.json();
-      // Backend returns { success:true, count:N, data:[...] }
-      const questions = Array.isArray(data) ? data
-                      : Array.isArray(safeGet(data,'data')) ? data.data
-                      : safeArr(data && data.questions);
-      const newQs = questions
-        .filter(q => !q.ai_generated && !q.answered && !q.answer_text)
-        .filter(q => !S.questions.find(e => e.apiId && e.apiId === q.id))
-        .map(q => ({
-          id:uid(), apiId:q.id, apiProductId:productId,
-          retailer:u.retailer, product:u.product, model:u.model||'', sku:u.sku||'',
-          question: q.question_text||q.question||q.text||'',
-          postedBy: q.asked_by||q.customer_name||q.asker||'Customer',
-          postedOn: ((q.created_at||q.asked_at||q.date||new Date().toISOString()).substring(0,10)),
-          sourceUrl:u.url, aiGenerated:false, answer:'', status:'pending',
-          aiAnswered:false, postedAt:null, postId:null
-        }));
-      if(!newQs.length){
-        addLog('scrape-log',`[${u.retailer}] ${u.product.substring(0,30)}: No new unanswered questions.`,'w');
-      } else {
-        newQs.forEach(q=>S.questions.push(q));
-        S.sessionNew+=newQs.length;
-        addLog('scrape-log',`[${u.retailer}] ${u.product.substring(0,30)}: +${newQs.length} questions fetched.`,'s');
-      }
-      u.status='scraped'; u.lastScraped=new Date().toISOString(); u.qCount=(u.qCount||0)+newQs.length;
-    } catch(err){
-      const msg = err.name==='AbortError' ? 'request timeout (8s)' : err.message;
-      addLog('scrape-log',`[${u.retailer}] API error: ${msg} — using simulated fallback`,'w');
-      const simQs = generateDynamicQuestions(u, S.questions.filter(q=>q.sourceUrl===u.url).length);
-      simQs.forEach(q=>S.questions.push(q)); S.sessionNew+=simQs.length;
-      u.status='scraped'; u.lastScraped=new Date().toISOString(); u.qCount=(u.qCount||0)+simQs.length;
-    }
-    updateScrapeStats(); renderUrlTable(); renderQTable();
-  }
-  btn.disabled=false; btn.innerHTML='▶ Run Now';
-  addLog('scrape-log',`Fetch complete — ${S.questions.length} total questions in queue.`,'s');
-  toast(`Done! ${S.sessionNew} new questions.`);
-  S.scrapeTimer=CFG.scrapeInterval;
-}
-
-function simulateScrape(urls){
-  if(!urls.length) return;
-  const btn=document.getElementById('scrape-btn');
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Scraping...';
-  addLog('scrape-log',`Simulated mode — ${urls.length} URL(s)... (configure API in ⚙️ Config for live data)`,'i');
-  let delay=0;
-  urls.forEach((u,idx)=>{
-    setTimeout(()=>{ u.status='scraping'; addLog('scrape-log',`[${u.retailer}] → ${u.url.substring(0,60)}...`,'i'); }, delay+=200);
-    setTimeout(()=>{
-      const existing=S.questions.filter(q=>q.sourceUrl===u.url);
-      const newQs=generateDynamicQuestions(u, existing.length);
-      if(!newQs.length){ addLog('scrape-log',`[${u.retailer}] ${u.product.substring(0,30)}: No new questions.`,'w'); S.sessionSkipped++; }
-      else { newQs.forEach(q=>S.questions.push(q)); S.sessionNew+=newQs.length; addLog('scrape-log',`[${u.retailer}] ${u.product.substring(0,30)}: +${newQs.length} questions.`,'s'); }
-      u.status='scraped'; u.lastScraped=new Date().toISOString(); u.qCount=(u.qCount||0)+newQs.length;
-      updateScrapeStats(); renderUrlTable(); renderQTable();
-      if(idx===urls.length-1){ btn.disabled=false; btn.innerHTML='▶ Run Now'; addLog('scrape-log',`Scrape complete — ${S.questions.length} total.`,'s'); toast(`Scrape done! ${S.sessionNew} new questions.`); S.scrapeTimer=CFG.scrapeInterval; }
-    }, delay+=700);
-  });
-}
-
-const SIM_QS = [
-  {retailer:'BESTBUY',product:'Hisense 32" A4 Series Roku TV',model:'32A47HNR',sku:'6644037',question:'The 32-inch model is listed as 28.6 inches wide but the stand width is listed as 39 inches. What is the actual stand width?',postedBy:'Rick',postedOn:'2026-03-01',sourceUrl:'https://www.bestbuy.com/site/questions/hisense-32-class-a4-series-hd-720p-led-smart-roku-tv-2025/6644037'},
-  {retailer:'BESTBUY',product:'Hisense 32" A4 Series Roku TV',model:'32A47HNR',sku:'6644037',question:'Does this TV have a LAN/ethernet port for wired internet?',postedBy:'Rett',postedOn:'2026-02-27',sourceUrl:'https://www.bestbuy.com/site/questions/hisense-32-class-a4-series-hd-720p-led-smart-roku-tv-2025/6644037'},
-  {retailer:'BESTBUY',product:'Hisense 32" A4 Series Roku TV',model:'32A47HNR',sku:'6644037',question:'Does this TV have Bluetooth to connect my Sony headphones?',postedBy:'Ladyytye',postedOn:'2026-02-09',sourceUrl:'https://www.bestbuy.com/site/questions/hisense-32-class-a4-series-hd-720p-led-smart-roku-tv-2025/6644037'},
-  {retailer:'BESTBUY',product:'Hisense 32" A4 Series Roku TV',model:'32A47HNR',sku:'6644037',question:'Is the Roku Smart TV operating system slow or not very responsive?',postedBy:'ClubCrackerMan',postedOn:'2026-02-05',sourceUrl:'https://www.bestbuy.com/site/questions/hisense-32-class-a4-series-hd-720p-led-smart-roku-tv-2025/6644037'},
-  {retailer:'BESTBUY',product:'Hisense 32" A4 Series Roku TV',model:'32A47HNR',sku:'6644037',question:'Does this TV support the Spectrum TV app?',postedBy:'Lae',postedOn:'2026-02-08',sourceUrl:'https://www.bestbuy.com/site/questions/hisense-32-class-a4-series-hd-720p-led-smart-roku-tv-2025/6644037'},
-  {retailer:'BESTBUY',product:'Hisense 55" U6 MiniLED Fire TV',model:'55U65QF',sku:'6620385',question:'Is the native refresh rate actually 144Hz? Another retailer shows 60Hz native.',postedBy:'Andrew',postedOn:'2025-04-10',sourceUrl:'https://www.bestbuy.com/site/questions/hisense-55-class-u6-series-miniled-qled-uhd-4k-hdr-smart-fire-tv-2025/6620385'},
-  {retailer:'BESTBUY',product:'Hisense 55" U6 MiniLED Fire TV',model:'55U65QF',sku:'6620385',question:'Can you disable motion enhancement/smoothing on this model?',postedBy:'EllenB',postedOn:'2025-04-15',sourceUrl:'https://www.bestbuy.com/site/questions/hisense-55-class-u6-series-miniled-qled-uhd-4k-hdr-smart-fire-tv-2025/6620385'},
-  {retailer:'BESTBUY',product:'Hisense 55" U6 MiniLED Fire TV',model:'55U65QF',sku:'6620385',question:'Does the 55 U6 have an ADS (IPS) or VA panel?',postedBy:'Smoothy',postedOn:'2025-03-20',sourceUrl:'https://www.bestbuy.com/site/questions/hisense-55-class-u6-series-miniled-qled-uhd-4k-hdr-smart-fire-tv-2025/6620385'},
-  {retailer:'BESTBUY',product:'Hisense 55" U6 MiniLED Fire TV',model:'55U65QF',sku:'6620385',question:'Does the TV have a sleep timer?',postedBy:'DebbieP',postedOn:'2025-03-18',sourceUrl:'https://www.bestbuy.com/site/questions/hisense-55-class-u6-series-miniled-qled-uhd-4k-hdr-smart-fire-tv-2025/6620385'},
-  {retailer:'BESTBUY',product:'Hisense 75" QD7 MiniLED Fire TV',model:'75QD7QF',sku:'6621482',question:'What is the actual peak brightness in nits for the 75QD7 with MiniLED local dimming fully on?',postedBy:'BrightRoom',postedOn:'2026-01-10',sourceUrl:'https://www.bestbuy.com/site/questions/hisense-75-class-qd7-series-miniled-qled-4k-uhd-hdr-smart-fire-tv-2025/6621482'},
-  {retailer:'WALMART',product:'Hisense 55" A6 Google TV',model:'55A6H',sku:'W-HIS55A6H',question:'Does this TV support Google Assistant voice commands through the remote?',postedBy:'TomW',postedOn:'2026-01-15',sourceUrl:'https://www.walmart.com/ip/Hisense-55-Class-A6-Series-4K-UHD-Smart-Google-TV/123456789'},
-  {retailer:'WALMART',product:'Hisense 55" A6 Google TV',model:'55A6H',sku:'W-HIS55A6H',question:'Can I cast from my phone without buying an extra Chromecast device?',postedBy:'SarahM',postedOn:'2026-01-20',sourceUrl:'https://www.walmart.com/ip/Hisense-55-Class-A6-Series-4K-UHD-Smart-Google-TV/123456789'},
-  {retailer:'AMAZON',product:'Hisense 65" A7 Android TV',model:'65A7GQ',sku:'B0AMZNHIS65',question:'Does this TV work with Amazon Alexa Echo devices for voice control?',postedBy:'PrimeUser99',postedOn:'2026-02-03',sourceUrl:'https://www.amazon.com/dp/B0AMZNHIS65'},
-  {retailer:'AMAZON',product:'Hisense 65" A7 Android TV',model:'65A7GQ',sku:'B0AMZNHIS65',question:'Is a wall mount bracket included or do I need to purchase separately?',postedBy:'DIYDave',postedOn:'2026-02-10',sourceUrl:'https://www.amazon.com/dp/B0AMZNHIS65'}
-];
-
-function generateDynamicQuestions(urlObj, existingCount){
-  if(existingCount>0) return [];
-  return SIM_QS
-    .filter(q=>q.retailer===urlObj.retailer && (q.sku===urlObj.sku || (urlObj.sku && q.sourceUrl.includes(urlObj.sku))))
-    .filter(q=>!S.questions.find(e=>e.question===q.question&&e.retailer===q.retailer))
-    .map(q=>({...q, id:uid(), apiId:null, apiProductId:null, aiAnswered:false, answer:'', status:'pending', postedAt:null, postId:null}));
-}
-
-// ANSWER QUEUE
-// ═══════════════════════════════════════════════
-function updateScrapeStats(){
-  document.getElementById('total-q').textContent=S.questions.length;
-  document.getElementById('new-q').textContent=S.sessionNew;
-  document.getElementById('skip-q').textContent=S.sessionSkipped;
-  document.getElementById('q-count-badge').textContent=S.questions.length;
-  updateAnswerStats();
-}
-
-function renderQTable(){
-  const rf=document.getElementById('q-filter').value;
-  const qs=S.questions.filter(q=>!rf||q.retailer===rf);
-  document.getElementById('q-count-badge').textContent=qs.length;
-  const tb=document.getElementById('q-tbody');
-  if(!qs.length){ tb.innerHTML=`<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:28px">No questions yet. Add URLs and run the scraper.</td></tr>`; return; }
-  tb.innerHTML=qs.map((q,i)=>`
-    <tr>
-      <td style="color:var(--text3)">${i+1}</td>
-      <td><span class="tag ${tagClass(q.retailer)}">${q.retailer}</span></td>
-      <td style="color:var(--text);max-width:120px" title="${q.product}">${q.product.substring(0,22)}...</td>
-      <td style="max-width:250px;line-height:1.4;color:var(--text)">${q.question}</td>
-      <td>${q.postedBy}</td>
-      <td style="color:var(--text3)">${q.postedOn||'—'}</td>
-      <td><span class="tag ${q.aiGenerated?'t-pu':'t-gy'}">${q.aiGenerated?'Yes':'No'}</span></td>
-      <td><span class="tag ${q.status==='posted'?'t-gr':q.status==='answered'?'t-bl':'t-am'}">${q.status}</span></td>
-      <td><a href="${q.sourceUrl}" target="_blank" class="lnk">↗ View</a></td>
-    </tr>`).join('');
-}
-
-function renderPostTable(){
-  const f=document.getElementById('post-filter').value;
-  const qs=S.questions.filter(q=>(!f||q.status===f)&&(q.status==='answered'||q.status==='posted'));
-  const tb=document.getElementById('post-tbody');
-  if(!qs.length){ tb.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:28px">No posts yet.</td></tr>`; return; }
-  tb.innerHTML=qs.map((q,i)=>`
-    <tr>
-      <td style="color:var(--text3)">${i+1}</td>
-      <td><span class="tag ${tagClass(q.retailer)}">${q.retailer}</span></td>
-      <td style="color:var(--text)">${q.product.substring(0,22)}...</td>
-      <td style="max-width:180px;color:var(--text2)">${q.question.substring(0,55)}...</td>
-      <td style="max-width:180px;color:var(--text2)">${(q.answer||'').substring(0,55)}...</td>
-      <td><span class="tag ${q.status==='posted'?'t-gr':'t-am'}">${q.status==='posted'?'✅ Posted':'⏳ Ready'}</span></td>
-      <td style="color:var(--text3);font-size:11px">${q.postedAt?new Date(q.postedAt).toLocaleString():'—'}</td>
-      <td style="font-size:11px;color:var(--text3);font-weight:600">${q.postId||'—'}</td>
-    </tr>`).join('');
-}
-
-function updateAnswerStats(){
-  const p=S.questions.filter(q=>q.status==='pending').length;
-  const a=S.questions.filter(q=>q.status==='answered').length;
-  const po=S.questions.filter(q=>q.status==='posted').length;
-  const ai=S.questions.filter(q=>q.aiAnswered).length;
-  ['a-pending','a-ready','a-posted','a-ai'].forEach((id,i)=>{
-    document.getElementById(id).textContent=[p,a,po,ai][i];
-  });
-  document.getElementById('ready-post').textContent=a;
-  document.getElementById('total-posted').textContent=po;
-}
-
-
-// AI answer — uses built-in Hisense rules, then user-defined CFG rules, then fallback
-const HISENSE_AI_RULES = [
-  {k:'stand width',a:'The stand width of 39 inches refers to the total footprint with both feet at maximum spread. The TV body itself is 28.6" wide. Ensure at least 39" of clearance. — Harley, Hisense Support'},
-  {k:'ethernet',a:'Yes, the Hisense A4 Series includes a LAN/Ethernet port for wired connectivity in addition to built-in Wi-Fi. — Harley, Hisense Support'},
-  {k:'LAN',a:'Yes, the Hisense A4 Series includes a LAN/Ethernet port for wired connectivity in addition to built-in Wi-Fi. — Harley, Hisense Support'},
-  {k:'Bluetooth',a:'Yes, this Hisense model supports Bluetooth for connecting compatible wireless headphones and audio devices. — Harley, Hisense Support'},
-  {k:'slow',a:'The Roku platform on this Hisense is fast and responsive with quick app switching. A significant improvement over basic smart TV interfaces. — Harley, Hisense Support'},
-  {k:'Spectrum',a:'Yes! The Spectrum TV app is available on Roku. Download it from the Roku Channel Store and sign in with your Spectrum credentials. — Harley, Hisense Support'},
-  {k:'144Hz',a:'The 2025 55U65QF features a native 120Hz panel with Game Mode Pro supporting up to 144Hz via VRR (48–144Hz). Some retailers list 60Hz which refers to the older 2024 model. — Harley, Hisense Support'},
-  {k:'motion',a:'Yes, motion processing can be fully disabled via Settings > Picture > Advanced > Motion. Switch to Standard or Custom mode for full control. — Harley, Hisense Support'},
-  {k:'VA panel',a:'The 55U65QF uses a VA (Vertical Alignment) panel offering excellent contrast and deep blacks — ideal for dark room viewing. — Harley, Hisense Support'},
-  {k:'sleep timer',a:'Yes! Sleep timer available at Settings > System > Sleep Timer. Increments: 5, 10, 15, 30, 60, 90, 120, 150, 180, and 240 minutes. — Harley, Hisense Support'},
-  {k:'brightness',a:'The 75QD7 achieves ~1500 nits peak brightness with MiniLED local dimming active in HDR mode, ~700 nits in SDR. — Harley, Hisense Support'},
-  {k:'Google Assistant',a:'Yes, the Hisense A6 with Google TV has Google Assistant built-in. Press the mic button or say "Hey Google" to control the TV and smart home devices. — Harley, Hisense Support'},
-  {k:'Chromecast',a:'Yes! Google TV has Chromecast built-in. Cast from your phone or Chrome browser — no external Chromecast needed. — Harley, Hisense Support'},
-  {k:'Alexa',a:'Yes, the Hisense A7 Android TV is compatible with Amazon Alexa via Echo devices for voice control. — Harley, Hisense Support'},
-  {k:'wall mount',a:'No wall mount is included. The 65" A7 uses VESA 400x300mm. A compatible VESA mount must be purchased separately. — Harley, Hisense Support'}
-];
-
-function getAIAnswer(question){
-  const ql = question.toLowerCase();
-  // Check built-in Hisense rules first
-  for(const rule of HISENSE_AI_RULES){
-    if(ql.includes(rule.k.toLowerCase())) return rule.a;
-  }
-  // Then CFG rules (user-defined)
-  for(const rule of CFG.aiRules){
-    if(ql.includes(rule.keyword.toLowerCase())) return rule.answer;
-  }
-  return 'Thank you for your question! Please contact our support team at 1-888-935-8880 or Service@Hisense-usa.com for the most accurate information. — Hisense Support Team';
-}
-
-function genAI(id){
-  const q=S.questions.find(x=>x.id===id); if(!q)return;
-  q.answer=getAIAnswer(q.question); q.aiAnswered=true; q.status='answered';
-  const ta=document.getElementById('ta-'+id); if(ta) ta.value=q.answer;
-  updateAnswerStats(); toast('AI answer generated!');
-}
-
-async function genAllAI(){
-  const pending=S.questions.filter(q=>q.status==='pending');
-  if(!pending.length){toast('No pending questions!','w');return;}
-  const btn=document.getElementById('ai-all-btn');
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Generating...';
-  for(const q of pending){ await sleep(100); q.answer=getAIAnswer(q.question); q.aiAnswered=true; q.status='answered'; }
-  updateAnswerStats(); renderAnswerTable();
-  btn.disabled=false; btn.innerHTML='🤖 AI Generate All';
-  toast(`AI generated ${pending.length} answers!`);
-}
-
-function markAnswered(id){
-  const q=S.questions.find(x=>x.id===id); if(!q)return;
-  const ta=document.getElementById('ta-'+id); if(ta) q.answer=ta.value;
-  if(!q.answer.trim()){toast('Enter an answer first','w');return;}
-  q.status='answered'; updateAnswerStats(); renderAnswerTable(); toast('Answer saved!');
-}
-
-function saveAll(){
-  S.questions.forEach(q=>{ const ta=document.getElementById('ta-'+q.id); if(ta&&ta.value.trim()&&q.status==='pending'){q.answer=ta.value.trim();q.status='answered';} });
-  updateAnswerStats(); toast('Answers saved!');
-}
-
-function exportQnA(){
-  if(!S.questions.length){toast('No data to export','w');return;}
-  const hdr='Retailer,Product,Model,SKU,Question,Posted By,Posted On,Source URL,Answer,Status,AI Generated,Posted At';
-  const rows=S.questions.map(q=>`"${q.retailer}","${q.product}","${q.model||''}","${q.sku||''}","${q.question.replace(/"/g,"'")}","${q.postedBy}","${q.postedOn}","${q.sourceUrl}","${(q.answer||'').replace(/"/g,"'")}","${q.status}","${q.aiAnswered?'Yes':'No'}","${q.postedAt||''}"`);
-  dlCSV([hdr,...rows].join('\n'),'cx_qa_export.csv'); toast('Exported!');
-}
-
-// ═══════════════════════════════════════════════
-// POST MANAGER — API-aware
-// ═══════════════════════════════════════════════
-function runPostCycle(){
-  const ready=S.questions.filter(q=>q.status==='answered');
-  if(!ready.length){toast('No answered questions to post','w');addLog('post-log','Nothing to post.','w');return;}
-  const btn=document.getElementById('post-btn');
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Posting...';
-  addLog('post-log',`Post cycle — ${ready.length} answer(s) queued.`,'i');
-  if(CFG.apiBaseUrl){ addLog('post-log',`🔌 Posting answers to mock retailer API...`,'i'); }
-  else { addLog('post-log',`⚠️ No API configured — answers will be simulated (configure in ⚙️ Config).`,'w'); }
-
-  const processNext = async (idx) => {
-    if(idx>=ready.length){
-      btn.disabled=false; btn.innerHTML='📤 Run Post Cycle';
-      addLog('post-log',`Cycle done — ${ready.length} answers processed.`,'s');
-      toast(`${ready.length} answers posted`);
-      S.postTimer=CFG.postInterval;
-      return;
-    }
-    const q=ready[idx];
-    addLog('post-log',`[${q.retailer}] Processing: "${q.question.substring(0,50)}..."`, 'i');
-
-    if(CFG.apiBaseUrl && q.apiId){
-      try {
-        const resp=await fetchWithTimeout(`${CFG.apiBaseUrl}/api/questions/${q.apiId}/answer`,{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({answer_text:q.answer, answered_by:CFG.username||'Q&A Automation'})
-        }, 8000);
-        if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const data=await resp.json();
-        q.status='posted'; q.postedAt=new Date().toISOString();
-        q.postId=data.id ? `API-${data.id}` : `API-${Math.random().toString(36).substr(2,6).toUpperCase()}`;
-        addLog('post-log',`[${q.retailer}] ✓ [${q.postId}] Answer posted to API.`,'s');
-      } catch(err){
-        const msg=err.name==='AbortError'?'timeout':'error: '+err.message;
-        addLog('post-log',`[${q.retailer}] API ${msg} — marking as SIM`,'w');
-        q.status='posted'; q.postedAt=new Date().toISOString();
-        q.postId='SIM-'+Math.random().toString(36).substr(2,8).toUpperCase();
-      }
-    } else {
-      await new Promise(r=>setTimeout(r,350));
-      q.status='posted'; q.postedAt=new Date().toISOString();
-      q.postId='SIM-'+Math.random().toString(36).substr(2,8).toUpperCase();
-      addLog('post-log',`[${q.retailer}] ✓ [${q.postId}] "${q.question.substring(0,40)}..."`, 's');
-    }
-    updateAnswerStats(); renderPostTable();
-    setTimeout(()=>processNext(idx+1), 250);
-  };
-  processNext(0);
-}
-
-function exportPosted(){
-  const p=S.questions.filter(q=>q.status==='posted');
-  if(!p.length){toast('Nothing to export','w');return;}
-  const hdr='Retailer,Product,Question,Answer,Posted At,Post ID';
-  const rows=p.map(q=>`"${q.retailer}","${q.product}","${q.question.replace(/"/g,"'")}","${q.answer.replace(/"/g,"'")}","${q.postedAt}","${q.postId}"`);
-  dlCSV([hdr,...rows].join('\n'),'cx_posted_answers.csv'); toast('Exported!');
-}
-
-function toggleLive(){
-  S.liveMode=!S.liveMode;
-  const b=document.getElementById('live-badge');
-  b.className=`tag ${S.liveMode?'t-gr':'t-re'}`;
-  b.textContent=S.liveMode?'🟢 LIVE POSTING: ENABLED':'🔴 LIVE POSTING: DISABLED';
-  toast(S.liveMode?'⚠️ Live mode enabled!':'Safe mode ON — simulation only.',S.liveMode?'w':'ok');
-}
-
-function toggleAutoPost(){
-  S.autoPost=!S.autoPost;
-  document.getElementById('auto-post-btn').innerHTML=S.autoPost?'⏸ Pause Auto':'▶ Resume Auto';
-}
-
-// ═══════════════════════════════════════════════
-// DASHBOARD — all computed from live S.questions, zero hardcodes
-// ═══════════════════════════════════════════════
-function renderDashboard(){
-  const rf=document.getElementById('d-retailer').value;
-  const sf=document.getElementById('d-start').value;
-  const ef=document.getElementById('d-end').value;
-  let qs=[...S.questions];
-  if(rf) qs=qs.filter(q=>q.retailer===rf);
-  if(sf) qs=qs.filter(q=>q.postedOn>=sf);
-  if(ef) qs=qs.filter(q=>q.postedOn<=ef);
-
-  const total=qs.length;
-  const posted=qs.filter(q=>q.status==='posted').length;
-  const pend=qs.filter(q=>q.status==='pending').length;
-  const ai=qs.filter(q=>q.aiAnswered).length;
-  const rate=total?Math.round(posted/total*100):0;
-
-  document.getElementById('d-total').textContent=total;
-  document.getElementById('d-posted').textContent=posted;
-  document.getElementById('d-pend').textContent=pend;
-  document.getElementById('d-ai').textContent=ai;
-  document.getElementById('d-rate').textContent=rate+'%';
-
-  // Savings — driven by CFG values
-  const timeSaved=Math.round(total*CFG.timePerQ/60*10)/10;
-  const fte=(timeSaved/CFG.workHrs).toFixed(1);
-  document.getElementById('d-time').textContent=timeSaved;
-  document.getElementById('d-fte').textContent=fte;
-  document.getElementById('d-resp').textContent=total?Math.round(CFG.scrapeInterval/60):'--';
-  document.getElementById('d-eff-bar').style.width=rate+'%';
-  document.getElementById('d-eff-pct').textContent=rate+'%';
-
-  // Pipeline
-  const answered=qs.filter(q=>q.status==='answered').length;
-  document.getElementById('p-urls').textContent=S.urls.length;
-  document.getElementById('p-scraped').textContent=total;
-  document.getElementById('p-answered').textContent=answered;
-  document.getElementById('p-posted').textContent=posted;
-  const pp=total?Math.round(posted/total*100):0;
-  document.getElementById('p-bar').style.width=pp+'%';
-  document.getElementById('p-pct').textContent=pp+'%';
-
-  renderRetailerChart(qs);
-  renderProductChart(qs);
-  renderTimelineChart(qs);
-}
-
-function renderRetailerChart(qs){
-  const c={};
-  qs.forEach(q=>{c[q.retailer]=(c[q.retailer]||0)+1;});
-  const tot=Object.values(c).reduce((a,b)=>a+b,0);
-  document.getElementById('d-retailer-chart').innerHTML=
-    Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([r,n])=>`
-      <div class="mb">
-        <div class="mbl"><span class="tag ${tagClass(r)}" style="font-size:10px">${r}</span></div>
-        <div class="mbt"><div class="mbf" style="width:${tot?n/tot*100:0}%;background:${tagColor(r)}"></div></div>
-        <div class="mbv">${n}</div>
-      </div>`).join('') || '<div class="empty"><p>No data</p></div>';
-}
-
-function renderProductChart(qs){
-  const c={};
-  qs.forEach(q=>{c[q.product]=(c[q.product]||0)+1;});
-  const top=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const mx=top.length?top[0][1]:1;
-  document.getElementById('d-products').innerHTML=
-    top.map(([p,n])=>`
-      <div class="mb">
-        <div class="mbl" style="min-width:100px;font-size:11px" title="${p}">${p.substring(0,18)}...</div>
-        <div class="mbt"><div class="mbf" style="width:${n/mx*100}%;background:#8b5cf6"></div></div>
-        <div class="mbv">${n}</div>
-      </div>`).join('') || '<div class="empty"><p>No data</p></div>';
-}
-
-function renderTimelineChart(qs){
-  const bd={};
-  qs.forEach(q=>{const d=(q.postedOn||'').substring(0,10);if(d)bd[d]=(bd[d]||0)+1;});
-  const dates=Object.keys(bd).sort().slice(-10);
-  if(!dates.length){document.getElementById('d-timeline').innerHTML='<div class="empty"><p>No timeline data yet</p></div>';return;}
-  const mx=Math.max(...dates.map(d=>bd[d]));
-  document.getElementById('d-timeline').innerHTML=`
-    <div style="display:flex;align-items:flex-end;gap:8px;height:100px;padding:0 4px">
-      ${dates.map(d=>`
-        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
-          <span style="font-size:10px;color:var(--text3)">${bd[d]}</span>
-          <div style="width:100%;height:${Math.max(bd[d]/mx*80,4)}px;background:linear-gradient(180deg,#3b82f6,#8b5cf6);border-radius:3px 3px 0 0"></div>
-          <span style="font-size:9px;color:var(--text3);writing-mode:vertical-rl;transform:rotate(180deg)">${d.substring(5)}</span>
-        </div>`).join('')}
-    </div>`;
-}
-
-function resetDashFilters(){
-  document.getElementById('d-retailer').value='';
-  document.getElementById('d-start').value=monthAgo;
-  document.getElementById('d-end').value=today;
-  renderDashboard();
-}
-
-function exportDashboard(){
-  const lines=[
-    'Q&A Automation — Dashboard Export',
-    `Generated: ${new Date().toLocaleString()}`,
-    '',
-    'METRIC,VALUE',
-    `Total Questions,${S.questions.length}`,
-    `Posted,${S.questions.filter(q=>q.status==='posted').length}`,
-    `Pending,${S.questions.filter(q=>q.status==='pending').length}`,
-    `AI Generated,${S.questions.filter(q=>q.aiAnswered).length}`,
-    `Response Rate,${S.questions.length?Math.round(S.questions.filter(q=>q.status==='posted').length/S.questions.length*100):0}%`,
-    `Time Saved (hrs),${Math.round(S.questions.length*CFG.timePerQ/60*10)/10}`,
-    `FTE Equivalent,${(Math.round(S.questions.length*CFG.timePerQ/60*10)/10/CFG.workHrs).toFixed(1)}`,
-    '',
-    'BY RETAILER',
-    ...Object.entries(S.questions.reduce((a,q)=>{a[q.retailer]=(a[q.retailer]||0)+1;return a},{})).map(([r,n])=>`${r},${n}`)
-  ];
-  dlCSV(lines.join('\n'),'cx_dashboard_report.csv'); toast('Dashboard exported!');
-}
-
-// ═══════════════════════════════════════════════
-// TIMERS — driven by CFG, not hardcoded
-// ═══════════════════════════════════════════════
-setInterval(()=>{
-  if(S.autoScrape){
-    S.scrapeTimer=Math.max(0,S.scrapeTimer-1);
-    if(S.scrapeTimer<=0){ S.scrapeTimer=CFG.scrapeInterval; if(S.urls.length){addLog('scrape-log','Auto-scrape triggered.','i');runScraper();} }
-    const m=Math.floor(S.scrapeTimer/60).toString().padStart(2,'0');
-    const s=(S.scrapeTimer%60).toString().padStart(2,'0');
-    document.getElementById('scrape-cd').textContent=`${m}:${s}`;
-  }
-  if(S.autoPost){
-    S.postTimer=Math.max(0,S.postTimer-1);
-    if(S.postTimer<=0){ S.postTimer=CFG.postInterval; if(S.questions.some(q=>q.status==='answered')){addLog('post-log','Auto-post triggered.','i');runPostCycle();} }
-    const m=Math.floor(S.postTimer/60).toString().padStart(2,'0');
-    const s=(S.postTimer%60).toString().padStart(2,'0');
-    document.getElementById('post-cd').textContent=`${m}:${s}`;
-  }
-},1000);
-
-function toggleAutoScrape(){
-  S.autoScrape=!S.autoScrape;
-  document.getElementById('auto-scrape-btn').innerHTML=S.autoScrape?'⏸ Pause Auto':'▶ Resume Auto';
-}
-
-// ═══════════════════════════════════════════════
-// EXPORT HELPER
-// ═══════════════════════════════════════════════
-function dlCSV(content,filename){
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([content],{type:'text/csv'}));
-  a.download=filename; a.click();
-}
-
-// ═══════════════════════════════════════════════
-// ═══════════════════════════════════════════════
-// API UTILITIES
-// ═══════════════════════════════════════════════
-async function testApiConnection(){
-  const urlField=document.getElementById('cfg-api-url');
-  const banner=document.getElementById('api-status-banner');
-  const btn=document.getElementById('api-test-btn');
-  const testUrl=(urlField.value||'').trim().replace(/\/+$/,'');
-  if(!testUrl){ banner.style.display='block'; banner.style.cssText='display:block;background:#fef3c7;color:#92400e;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:500'; banner.textContent='⚠️ Enter an API URL first.'; return; }
-  btn.disabled=true; btn.innerHTML='<span class="spin spin-d"></span>';
-  try {
-    const resp = await fetchWithTimeout(`${testUrl}/api/health`, {}, 8000);
-    if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data=await resp.json();
-    banner.style.cssText='display:block;background:#dcfce7;color:#166534;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:500';
-    banner.textContent=`✅ Connected! ${data.message||'API healthy'} — ${data.products||'?'} products available. Click Save Config then use "📥 Load Q&A" in URL Manager.`;
-    CFG.apiBaseUrl=testUrl; document.getElementById('cfg-api-url').value=testUrl;
-    toast('API connected!');
-  } catch(err){
-    const msg=err.name==='AbortError'?'timeout (8s)':err.message;
-    banner.style.cssText='display:block;background:#fee2e2;color:#991b1b;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:500';
-    banner.textContent=`❌ ${msg==='Failed to fetch'?'Cannot reach backend — check the Railway URL is correct and the service is running':msg}. If Railway just deployed, wait 30s and try again.`;
-  }
-  btn.disabled=false; btn.innerHTML='🔗 Test Connection';
-}
-
-async function loadUrlsFromApi(){
-  if(!CFG.apiBaseUrl){ toast('Set API URL in ⚙️ Config first','w'); return; }
-  const btn=document.getElementById('load-api-btn');
-  btn.disabled=true; btn.innerHTML='<span class="spin spin-d"></span> Loading Q&A...';
-  try {
-    const resp = await fetchWithTimeout(`${CFG.apiBaseUrl}/api/products`, {}, 8000);
-    if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data=await resp.json();
-    // Backend returns { success:true, data:[...] } or { success:true, count:N, data:[...] }
-    const products = Array.isArray(data) ? data
-                   : Array.isArray(safeGet(data,'data')) ? data.data
-                   : safeArr(data && data.products);
-    if(!products.length){
-      addLog('scrape-log','📥 Load Q&A: API returned 0 products. Check the backend is seeded.','w');
-      toast('No products returned from API','w');
-    }
-    let added=0;
-    products.forEach(p=>{
-      if(!p.id) return;
-      const retailer=(p.retailer_id||p.retailer||'OTHER').toUpperCase();
-      // product title field is 'title' in backend
-      const productName = p.title||p.name||p.product_name||p.id;
-      const mockUrl = buildMockUrl(retailer, p.id, productName);
-      if(S.urls.find(u=>u.apiProductId===p.id)) return;
-      S.urls.push({
-        id:uid(), apiProductId:p.id,
-        retailer:retailer,
-        product:productName,
-        model:p.model||'', sku:p.sku||p.id,
-        url:mockUrl,
-        status:'pending', lastScraped:null, qCount:0
-      });
-      added++;
-    });
-    renderUrlTable();
-    toast(`Loaded ${added} products from API!`);
-    addLog('scrape-log',`🔌 Loaded ${added} product URLs from mock retailer API (${products.length} total).`,'s');
-  } catch(err){
-    const msg=err.message||'Unknown error';
-    toast(`API error: ${msg}`,'e');
-    addLog('scrape-log',`❌ Load Q&A failed: ${msg}`,'e');
-  }
-  btn.disabled=false; btn.innerHTML='📥 Load Q&A';
-}
-
-function buildMockUrl(retailer, productId, name){
-  const slug=(name||'product').toLowerCase().replace(/[^a-z0-9]+/g,'-').substring(0,40);
-  const bases={
-    BESTBUY:'https://mock-bestbuy.netlify.app',
-    WALMART:'https://mock-walm-art.netlify.app',
-    AMAZON:'https://mock-amazonde.netlify.app',
-    COSTCO:'https://mock-costco.netlify.app'
-  };
-  const base=bases[retailer]||`https://mock-${retailer.toLowerCase()}.netlify.app`;
-  return `${base}/product/${productId}`;
-}
-
-// ═══════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════
-// GLOBAL STATE — enrichment + KB + review
-// ═══════════════════════════════════════════════
-let KB_ENTRIES = [];
-let REVIEW_ITEMS = [];
-let currentReviewItem = null;
-const CAT_COLORS = {
-  product_info:'#2563eb', pricing:'#059669', warranty:'#d97706',
-  compatibility:'#7c3aed', usage:'#0891b2', complaint:'#dc2626',
-  returns:'#ea580c', other:'#6b7280', faq:'#1d4ed8', policy:'#064e3b', approved_answer:'#6d28d9'
-};
-const SENT_COLORS = { positive:'#059669', neutral:'#6b7280', negative:'#dc2626' };
-const LANG_FLAGS  = { en:'🇺🇸', fr:'🇫🇷', es:'🇪🇸', de:'🇩🇪', zh:'🇨🇳', ja:'🇯🇵', ko:'🇰🇷', pt:'🇧🇷', it:'🇮🇹', ar:'🇸🇦', hi:'🇮🇳', ru:'🇷🇺' };
-
-function langFlag(code){ return LANG_FLAGS[code] || '🌐'; }
-function catBadge(cat){ return `<span style="background:${CAT_COLORS[cat]||'#6b7280'}20;color:${CAT_COLORS[cat]||'#6b7280'};border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600">${(cat||'').replace('_',' ')}</span>`; }
-function sentBadge(s){ const c=SENT_COLORS[s]||'#6b7280'; return `<span style="background:${c}20;color:${c};border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600">${s||'neutral'}</span>`; }
-function confBadge(pct){ 
-  const n=parseFloat(pct)||0;
-  const c=n>=70?'#059669':n>=50?'#d97706':'#dc2626';
-  return `<span style="background:${c}20;color:${c};border-radius:4px;padding:2px 6px;font-size:11px;font-weight:700">${n}%</span>`; 
-}
-
-// ═══════════════════════════════════════════════
-// ENHANCED renderAnswerTable — shows enrichment
-// ═══════════════════════════════════════════════
-function renderAnswerTable(){
-  updateAnswerStats();
-  const rf=document.getElementById('ans-f-retailer').value;
-  const qs=S.questions.filter(q=>q.status==='pending'||q.status==='answered'||q.status==='review');
-  const filtered=rf?qs.filter(q=>q.retailer===rf):qs;
-  document.getElementById('a-total').textContent=qs.length;
-  const tb=document.getElementById('ans-tbody');
-  if(!filtered.length){
-    const hasApi = !!CFG.apiBaseUrl;
-    tb.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text3)">'+(S.questions.length?'No questions match current filter.':hasApi?'Queue empty — go to Q&A Scraper and click ▶ Run Now to fetch questions.':'Queue empty — configure API in ⚙️ Config then use 📥 Load Q&A to import products.')+'</td></tr>';
-    return;
-  }
-  tb.innerHTML=filtered.map((q,i)=>{
-    if(!q) return '';
-    const conf = q.ai_confidence ? Math.round(parseFloat(q.ai_confidence)*100) : (q.confidence_pct||0);
+function renderAnswerQueue(){
+  const tb=document.getElementById('aq-tbody');
+  if(!AQ_DATA.length){tb.innerHTML='<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--text3)">No questions found</td></tr>';return;}
+  // Fetch product URLs for linking
+  tb.innerHTML = AQ_DATA.map((q,i)=>{
+    const conf=q.ai_confidence||0;
+    const answerText = q._localAnswer || (q.answer?q.answer.answer_text:'');
+    const isAnswered = q.status==='answered';
     const isReview = q.status==='review';
-    return `<tr style="${isReview?'background:#fef2f2':''}"">
-      <td style="color:var(--text3)">${i+1}</td>
-      <td><span class="tag ${tagClass(q.retailer)}">${q.retailer}</span></td>
-      <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${q.product}">${q.product.substring(0,20)}...</td>
-      <td style="max-width:200px;line-height:1.4">${q.question}</td>
+    const rowBg = isReview?'background:#fef9f9;':'';
+    const productUrl = q.product_url||'';
+    return `<tr style="${rowBg}">
+      <td style="color:var(--text3)">${(AQ_PAGE-1)*20+i+1}</td>
+      <td>${retailerTag(q.retailer_id?.toUpperCase()||'')}</td>
+      <td style="max-width:110px;font-size:11.5px" title="${q.product_title||''}">${(q.product_title||q.product_id||'').substring(0,22)}…</td>
+      <td style="max-width:200px;line-height:1.4;font-size:12px">${q.question_text||''}</td>
       <td style="font-size:16px" title="${q.language_name||'English'}">${langFlag(q.language||'en')}</td>
-      <td>${catBadge(q.category||'product_info')}</td>
-      <td>${sentBadge(q.sentiment||'neutral')}</td>
+      <td>${catBadge(q.category)}</td>
+      <td>${sentBadge(q.sentiment)}</td>
       <td>${conf>0?confBadge(conf):'<span style="color:var(--text3)">—</span>'}</td>
-      <td style="max-width:180px">${q.answer?q.answer.substring(0,60)+'...':(isReview?'<span style="color:#ef4444;font-size:11px">⚠ Needs review</span>':'')}</td>
-      <td><span class="tag ${q.status==='answered'?'t-gr':q.status==='review'?'t-re':'t-am'}">${q.status}</span></td>
+      <td style="max-width:180px">
+        ${isAnswered&&answerText?`<span style="font-size:11px;color:var(--text2)">${answerText.substring(0,60)}…</span>`:
+          isReview?`<span class="tag t-re" style="font-size:10px">⚠ Review needed</span>`:
+          `<textarea class="answer-edit" id="edit-${q.id}" placeholder="Type answer…">${answerText}</textarea>`}
+      </td>
+      <td><span class="tag ${isAnswered?'t-gr':isReview?'t-re':'t-am'}">${q.status}</span></td>
+      <td>${viewLink(productUrl)}</td>
       <td>
         <div style="display:flex;gap:4px;flex-wrap:wrap">
-          <button class="btn b-bl" style="padding:3px 7px;font-size:11px" onclick="openAnswerModal('${q.id}')">✏ Edit</button>
-          <button class="btn b-pu" style="padding:3px 7px;font-size:11px" onclick="genAI('${q.id}')">🤖</button>
-          <button class="btn" style="padding:3px 7px;font-size:11px;background:#ede9fe;color:#6d28d9;border:none" onclick="genRAG('${q.id}')" title="AI+RAG">✨</button>
-          ''
+          ${!isAnswered?`<button class="btn b-pu" style="padding:3px 7px;font-size:11px" onclick="ragAnswer('${q.id}')" title="AI+RAG Answer">🤖</button>`:''}
+          ${!isAnswered?`<button class="btn b-gr" style="padding:3px 7px;font-size:11px" onclick="saveAnswer('${q.id}')">💾</button>`:''}
         </div>
       </td>
     </tr>`;
   }).join('');
 }
 
-// ── Answer modal ──
-let _answerModalQid = null;
-function openAnswerModal(qid){
-  const q = S.questions.find(x=>x.id===qid);
-  if(!q) return;
-  _answerModalQid = qid;
-  // Create inline answer editor above the row
-  const rows = document.querySelectorAll('#ans-tbody tr');
-  // Simple approach: use existing saveAnswer flow
-  const ans = prompt('Edit answer for: "'+(q.question||'')+'"', q.answer||q.draft||'')||null;
-  if(ans !== null){ q.answer = ans; q.status='answered'; renderAnswerTable(); toast('Answer saved!'); }
+function renderAQPagination(total,page,limit){
+  const pages=Math.ceil(total/(limit||20));
+  const el=document.getElementById('aq-pagination');
+  if(pages<=1){el.innerHTML='';return;}
+  el.innerHTML=Array.from({length:Math.min(pages,10)},(_,i)=>i+1).map(p=>
+    `<button class="btn ${p===page?'b-bl':'b-gh'}" style="padding:4px 10px;font-size:11px" onclick="loadAnswerQueue(${p})">${p}</button>`
+  ).join('');
 }
 
-// ── RAG Answer Generation ──
-async function genRAG(qid){
-  if(!CFG.apiBaseUrl){ toast('Set API URL in Config first','w'); return; }
-  const q = S.questions.find(x=>x.id===qid);
-  if(!q){ toast('Question not found in local queue','w'); return; }
-  if(!q.apiId){ toast('This question has no API ID — use 📥 Load Q&A then ▶ Run Now to fetch live questions first','w'); return; }
-  toast('Generating AI+RAG answer...');
+async function ragAnswer(qid){
+  const btn=document.querySelector(`button[onclick="ragAnswer('${qid}')"]`);
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span>';}
   try{
-    const resp = await fetchWithTimeout(`${CFG.apiBaseUrl}/api/questions/${q.apiId}/ai-answer`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})},15000);
-    if(!resp.ok) throw new Error('HTTP '+resp.status);
-    const data = await resp.json();
-    if(data.success && data.data){
-      const r = safeGet(data,'data') || {};
-      q.answer = r.answer || '';
-      q.ai_confidence = r.confidence || 0;
-      q.confidence_pct = r.confidence_pct || 0;
-      q.aiAnswered = true;
-      q.status = r.needs_review ? 'review' : 'answered';
-      q.review_reason = r.review_reason || null;
-      renderAnswerTable(); updateAnswerStats();
-      toast(r.needs_review ? '⚠ Flagged for review ('+r.confidence_pct+'%)' : '✅ RAG answer generated ('+r.confidence_pct+'%)');
-    }
-  }catch(e){ toast('RAG error: '+e.message,'e'); }
+    const d=await api(`/api/questions/${qid}/ai-answer`,{method:'POST',body:JSON.stringify({})});
+    toast(`AI answer generated — confidence ${Math.round((d.data?.confidence||0)*100)}%`);
+    await loadAnswerQueue(AQ_PAGE);
+  }catch(e){
+    toast('AI error: '+e.message,'e');
+    if(btn){btn.disabled=false;btn.innerHTML='🤖';}
+  }
 }
 
-async function genAllRAG(){
-  if(!CFG.apiBaseUrl){ toast('Set API URL in Config first','w'); return; }
-  const pending = S.questions.filter(q=>q.status==='pending'&&q.apiId);
-  if(!pending.length){ toast('No pending questions with API IDs','w'); return; }
-  const btn=document.getElementById('gen-rag-btn');
-  btn.disabled=true; btn.innerHTML='<span class="spin spin-d"></span> Generating...';
-  let done=0;
+async function saveAnswer(qid){
+  const ta=document.getElementById('edit-'+qid);
+  if(!ta||!ta.value.trim()){toast('Enter an answer first','w');return;}
+  LOCAL_EDITS[qid]=ta.value.trim();
+  saveLocalEdits();
+  try{
+    await api(`/api/questions/${qid}/answer`,{method:'POST',body:JSON.stringify({answer_text:ta.value.trim(),answered_by:'Operator',is_approved:true})});
+    toast('Answer saved & posted!');
+    await loadAnswerQueue(AQ_PAGE);
+  }catch(e){toast('Save error: '+e.message,'e');}
+}
+
+async function ragAll(){
+  const btn=document.getElementById('rag-all-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Working…';
+  const pending=AQ_DATA.filter(q=>q.status==='unanswered');
+  if(!pending.length){toast('No unanswered questions to process','w');btn.disabled=false;btn.innerHTML='🤖 AI Answer All';return;}
+  let done=0,failed=0;
   for(const q of pending){
-    await genRAG(q.id);
-    done++;
-    btn.innerHTML='<span class="spin spin-d"></span> '+done+'/'+pending.length;
+    try{await api(`/api/questions/${q.id}/ai-answer`,{method:'POST',body:JSON.stringify({})});done++;}
+    catch(e){failed++;await new Promise(r=>setTimeout(r,1000));}// rate limit: small delay
+    btn.innerHTML=`<span class="spin"></span> ${done}/${pending.length}…`;
   }
-  btn.disabled=false; btn.innerHTML='✨ AI+RAG (All)';
-  toast('RAG generation complete for '+done+' questions');
+  btn.disabled=false;btn.innerHTML='🤖 AI Answer All';
+  toast(`Done: ${done} answered, ${failed} failed`);
+  await loadAnswerQueue(AQ_PAGE);
 }
 
-// ═══════════════════════════════════════════════
-// REVIEW QUEUE
-// ═══════════════════════════════════════════════
-async function refreshReviewQueue(){
-  if(!CFG.apiBaseUrl){ REVIEW_ITEMS = S.questions.filter(q=>q.status==='review'); renderReviewTable(); return; }
+function exportAnswerQueue(){
+  if(!AQ_DATA.length){toast('No data to export','w');return;}
+  const rows=[['ID','Retailer','Product','Question','Language','Category','Sentiment','Confidence','Answer','Status']];
+  AQ_DATA.forEach(q=>rows.push([q.id,q.retailer_id,q.product_title||'',q.question_text||'',q.language||'',q.category||'',q.sentiment||'',Math.round((q.ai_confidence||0)*100)+'%',(q.answer?.answer_text||'').replace(/,/g,';'),q.status]));
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,"'")}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='answer_queue.csv';a.click();
+}
+
+// ═══ POST MANAGER ══════════════════════════════════════════
+async function loadPostQueue(){
+  const retailer=(document.getElementById('pm-filter-retailer').value||'').toLowerCase();
+  let path=`/api/admin/questions?status=answered&limit=50`;
+  if(retailer) path+=`&retailer=${retailer}`;
   try{
-    const resp = await fetchWithTimeout(`${CFG.apiBaseUrl}/api/admin/questions?status=review&limit=100`,{},8000);
-    const data = await resp.json();
-    if(data && data.success){
-      const reviewData = safeArr(safeGet(data,'data'));
-      reviewData.forEach(aq=>{
-        if(!aq||!aq.id) return;
-          const existing = S.questions.find(q=>q.apiId===aq.id);
-        if(!existing){
-          S.questions.push({
-            id:uid(), apiId:aq.id, apiProductId:aq.product_id,
-            retailer:(aq.retailer_id||'OTHER').toUpperCase(),
-            product:aq.product_title||aq.product_id||'Unknown Product',
-            question:aq.question_text||'',
-            postedBy:aq.asked_by||'Customer',
-            postedOn:(aq.asked_at||new Date().toISOString()).substring(0,10),
-            sourceUrl:'', status:'review',
-            language:aq.language||'en', language_name:aq.language_name||'English',
-            category:aq.category||'product_info', sentiment:aq.sentiment||'neutral',
-            ai_confidence:aq.ai_confidence||0,
-            confidence_pct:Math.round((aq.ai_confidence||0)*100),
-            review_reason:aq.review_reason||'',
-            answer:aq.answer?.answer_text||'', aiAnswered:false,
-            postedAt:null, postId:null
-          });
-        }
-      });
-    }
-  }catch(e){ showErr('Review Queue refresh',e); }
-  REVIEW_ITEMS = S.questions.filter(q=>q.status==='review');
-  renderReviewTable();
-  // Update badge
-  const badge = document.getElementById('review-badge');
-  if(badge){ badge.textContent=REVIEW_ITEMS.length; badge.style.display=REVIEW_ITEMS.length?'inline':'none'; }
+    const d=await api(path);
+    PM_DATA=d.data||[];
+    renderPostQueue();
+    const stats=await api('/api/admin/stats');
+    const s=stats.data||{};
+    document.getElementById('pm-posted').textContent=s.answered||0;
+    document.getElementById('pm-ready').textContent=PM_DATA.filter(q=>q.answer&&q.answer.is_approved).length;
+    document.getElementById('pm-ai').textContent=PM_DATA.filter(q=>q.answer&&q.answer.answered_by&&q.answer.answered_by.includes('AI')).length;
+  }catch(e){document.getElementById('pm-tbody').innerHTML=`<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--red)">${e.message}</td></tr>`;}
 }
 
-function renderReviewTable(){
-  REVIEW_ITEMS = S.questions.filter(q=>q.status==='review');
-  const reasonF  = document.getElementById('rv-filter-reason')?.value||''  ;
-  const retailerF= document.getElementById('rv-filter-retailer')?.value||'';
-  let items = REVIEW_ITEMS;
-  if(retailerF) items=items.filter(q=>q.retailer===retailerF);
-  if(reasonF){
-    if(reasonF==='non_english')   items=items.filter(q=>q.language&&q.language!=='en');
-    if(reasonF==='low_confidence') items=items.filter(q=>q.confidence_pct<70);
-    if(reasonF==='no_kb_match')    items=items.filter(q=>q.review_reason&&q.review_reason.toLowerCase().includes('kb'));
-  }
-  const badge=document.getElementById('review-badge');
-  if(badge){badge.textContent=REVIEW_ITEMS.length;badge.style.display=REVIEW_ITEMS.length?'inline':'none';}
-  const tb=document.getElementById('rv-tbody');
-  if(!items.length){
-    const msg = REVIEW_ITEMS.length ? 'No items match the current filter — try clearing the filters.' : (!CFG.apiBaseUrl ? 'Configure API in ⚙️ Config first, then click ↺ Refresh.' : 'No items in review queue. ✅ All questions have been processed!');
-    tb.innerHTML='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text3)">'+msg+'</td></tr>';
-    return;
-  }
-  tb.innerHTML=items.map((q,i)=>{
-    if(!q) return '';
-    const conf=q.confidence_pct||Math.round((q.ai_confidence||0)*100);
+function renderPostQueue(){
+  const tb=document.getElementById('pm-tbody');
+  if(!PM_DATA.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text3)">No answered questions yet</td></tr>';return;}
+  tb.innerHTML=PM_DATA.map((q,i)=>{
+    const ans=q.answer||{};
+    const isApproved=ans.is_approved;
+    const productUrl=q.product_url||'';
     return `<tr>
-      <td style="font-size:16px">${langFlag(q.language||'en')} <span style="font-size:10px;color:var(--text3)">${q.language_name||'English'}</span></td>
-      <td>${catBadge(q.category||'product_info')}</td>
-      <td>${sentBadge(q.sentiment||'neutral')}</td>
-      <td>${conf>0?confBadge(conf):'<span style="color:var(--text3)">—</span>'}</td>
-      <td style="max-width:220px">${q.question}</td>
-      <td style="max-width:120px;font-size:12px">${(q.product||'—').substring(0,30)}</td>
-      <td><span class="tag ${tagClass(q.retailer)}">${q.retailer}</span></td>
-      <td style="font-size:11px;color:#ef4444">${q.review_reason||'—'}</td>
+      <td style="color:var(--text3)">${i+1}</td>
+      <td>${retailerTag(q.retailer_id?.toUpperCase()||'')}</td>
+      <td style="font-size:11.5px;max-width:120px" title="${q.product_title||''}">${(q.product_title||'').substring(0,22)}…</td>
+      <td style="max-width:160px;font-size:12px">${(q.question_text||'').substring(0,55)}…</td>
+      <td style="max-width:180px;font-size:11.5px;color:var(--text2)">${(ans.answer_text||'').substring(0,60)}…</td>
+      <td style="font-size:11px;color:var(--text3)">${ans.answered_by||'—'}</td>
+      <td><span class="tag ${isApproved?'t-gr':'t-am'}">${isApproved?'✅ Approved':'⏳ Pending'}</span></td>
+      <td>${viewLink(productUrl,'↗ View on Mock Page')}</td>
       <td>
-        <button class="btn b-bl" style="padding:3px 8px;font-size:11px" onclick="openReviewModal('${q.id}')">Review</button>
-        <button class="btn b-gh" style="padding:3px 8px;font-size:11px;margin-left:4px" onclick="skipReview('${q.id}')">Skip</button>
+        ${!isApproved?`<button class="btn b-gr" style="padding:3px 8px;font-size:11px" onclick="approveAnswer('${q.id}')">✓ Approve</button>`:'<span style="color:var(--green);font-size:11px">✓ Posted</span>'}
       </td>
     </tr>`;
   }).join('');
 }
 
-function openReviewModal(qid){
-  const q = S.questions.find(x=>x.id===qid);
-  if(!q) return;
-  currentReviewItem = q;
-  document.getElementById('rv-modal-question').textContent = q.question;
-  const conf=q.confidence_pct||Math.round((q.ai_confidence||0)*100);
-  document.getElementById('rv-modal-confidence').textContent = conf>0 ? conf+'% confidence' : '';
-  document.getElementById('rv-modal-answer').value = q.answer||'';
-  const meta = document.getElementById('rv-modal-meta');
-  meta.innerHTML = [
-    langFlag(q.language||'en')+' '+catBadge(q.category),
-    sentBadge(q.sentiment),
-    `<span style="font-size:11px;color:#ef4444">⚠ ${q.review_reason||'Needs review'}</span>`
-  ].join('');
-  document.getElementById('rv-modal').style.display='block';
+async function approveAnswer(qid){
+  try{
+    await api(`/api/questions/${qid}/approve`,{method:'PATCH',body:JSON.stringify({approved_by:'Operator',add_to_kb:false})});
+    toast('Approved!');
+    loadPostQueue();
+  }catch(e){toast('Error: '+e.message,'e');}
 }
 
-async function approveReviewItem(){
-  if(!currentReviewItem) return;
-  const q = currentReviewItem;
-  const ans = document.getElementById('rv-modal-answer').value.trim();
-  const addToKB = document.getElementById('rv-modal-add-kb').checked;
-  if(!ans || !ans.trim()){ toast('Please enter an answer before approving','w'); return; }
-  q.answer = ans; q.status = 'answered'; q.postedAt = null;
-  // If API connected, approve on backend
-  if(CFG.apiBaseUrl && q.apiId){
-    try{
-      await fetchWithTimeout(`${CFG.apiBaseUrl}/api/questions/${q.apiId}/approve`,{
-        method:'PATCH',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({approved_by:CFG.username||'Operator',add_to_kb:addToKB})
-      },8000);
-      if(addToKB) toast('✅ Approved and added to Knowledge Base');
-      else toast('✅ Answer approved');
-    }catch(e){ toast('Approved locally (API error: '+e.message+')','w'); }
-  } else {
-    toast('✅ Approved');
+async function postAllReady(){
+  const ready=PM_DATA.filter(q=>q.answer&&!q.answer.is_approved);
+  if(!ready.length){toast('No pending approvals','w');return;}
+  const btn=document.getElementById('post-all-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Posting…';
+  let done=0;
+  for(const q of ready){
+    try{await api(`/api/questions/${q.id}/approve`,{method:'PATCH',body:JSON.stringify({approved_by:'Operator',add_to_kb:false})});done++;}
+    catch(e){/* continue */}
   }
-  document.getElementById('rv-modal').style.display='none';
-  currentReviewItem=null;
-  refreshReviewQueue(); renderAnswerTable(); updateAnswerStats();
+  btn.disabled=false;btn.innerHTML='📤 Post All Ready';
+  toast(`${done} answers approved and posted`);
+  loadPostQueue();
 }
 
-function rejectReviewItem(){
-  if(!currentReviewItem) return;
-  currentReviewItem.status='pending';
-  currentReviewItem.review_reason=null;
-  document.getElementById('rv-modal').style.display='none';
-  currentReviewItem=null;
-  refreshReviewQueue(); renderAnswerTable();
-  toast('Item moved back to Answer Queue');
+function exportPostQueue(){
+  if(!PM_DATA.length){toast('No data to export','w');return;}
+  const rows=[['ID','Retailer','Product','Question','Answer','Answered By','Approved','Posted At']];
+  PM_DATA.forEach(q=>{const a=q.answer||{};rows.push([q.id,q.retailer_id,q.product_title||'',q.question_text||'',(a.answer_text||'').replace(/,/g,';'),a.answered_by||'',a.is_approved||false,a.answered_at||'']);});
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,"'")}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='post_queue.csv';a.click();
+}
+
+// ═══ REVIEW QUEUE ══════════════════════════════════════════
+async function loadReviewQueue(){
+  const retailer=(document.getElementById('rv-filter-retailer').value||'').toLowerCase();
+  let path=`/api/admin/questions?status=review&limit=50`;
+  if(retailer) path+=`&retailer=${retailer}`;
+  try{
+    const d=await api(path);
+    RV_DATA=d.data||[];
+    renderReviewQueue();
+    updateBadges(0,RV_DATA.length);
+  }catch(e){document.getElementById('rv-tbody').innerHTML=`<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--red)">${e.message}</td></tr>`;}
+}
+
+function renderReviewQueue(){
+  const tb=document.getElementById('rv-tbody');
+  if(!RV_DATA.length){tb.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text3)">No items in review queue 🎉</td></tr>';return;}
+  tb.innerHTML=RV_DATA.map((q,i)=>{
+    const conf=q.ai_confidence||0;
+    // Clean review reason — don't show raw API error JSON to operator
+    let reason=q.review_reason||'Manual review required';
+    if(reason.includes('{"type":"error"')){ reason='AI service error — please answer manually'; }
+    const productUrl=q.product_url||'';
+    return `<tr>
+      <td style="color:var(--text3)">${i+1}</td>
+      <td style="font-size:16px">${langFlag(q.language||'en')}</td>
+      <td>${catBadge(q.category)}</td>
+      <td>${sentBadge(q.sentiment)}</td>
+      <td>${conf>0?confBadge(conf):'<span style="color:var(--text3)">—</span>'}</td>
+      <td style="max-width:200px;font-size:12px">${q.question_text||''}</td>
+      <td style="font-size:11.5px;max-width:120px" title="${q.product_title||''}">${(q.product_title||'').substring(0,22)}…</td>
+      <td>${retailerTag(q.retailer_id?.toUpperCase()||'')}</td>
+      <td><div class="rv-reason">${reason.substring(0,120)}</div></td>
+      <td>${viewLink(productUrl)}</td>
+      <td>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="btn b-gr" style="padding:3px 7px;font-size:11px" onclick="openReviewModal('${q.id}')">✏ Review</button>
+          <button class="btn b-gh" style="padding:3px 7px;font-size:11px" onclick="skipReview('${q.id}')">Skip</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function openReviewModal(qid){
+  const q=RV_DATA.find(x=>x.id===qid);
+  if(!q) return;
+  const existing=q.answer?.answer_text||LOCAL_EDITS[qid]||'';
+  const ans=prompt(`Review: "${q.question_text}"\n\nProduct: ${q.product_title||q.product_id}\nRetailer: ${q.retailer_id}\n\nEnter your answer:`,existing);
+  if(ans===null) return;
+  if(!ans.trim()){toast('Answer cannot be empty','w');return;}
+  const addToKb=confirm('Add this answer to the Knowledge Base for future AI use?');
+  try{
+    // Save answer first
+    await api(`/api/questions/${qid}/answer`,{method:'POST',body:JSON.stringify({answer_text:ans.trim(),answered_by:'Operator',is_approved:true})});
+    // Approve
+    await api(`/api/questions/${qid}/approve`,{method:'PATCH',body:JSON.stringify({approved_by:'Operator',add_to_kb:addToKb})});
+    LOCAL_EDITS[qid]=ans.trim();saveLocalEdits();
+    toast('Answer approved'+(addToKb?' and added to KB':'')+'!');
+    loadReviewQueue();
+    loadAnswerQueue(AQ_PAGE);
+  }catch(e){toast('Error: '+e.message,'e');}
 }
 
 function skipReview(qid){
-  const q=S.questions.find(x=>x.id===qid);
-  if(q){q.status='pending';q.review_reason=null;}
-  refreshReviewQueue();
-  toast('Item skipped — moved to Answer Queue');
+  RV_DATA=RV_DATA.filter(q=>q.id!==qid);
+  renderReviewQueue();
+  updateBadges(0,RV_DATA.length);
 }
 
-// ═══════════════════════════════════════════════
-// KNOWLEDGE BASE
-// ═══════════════════════════════════════════════
-async function loadKBEntries(){
-  if(!CFG.apiBaseUrl){ KB_ENTRIES=[]; renderKBTable(); return; }
+// ═══ KNOWLEDGE BASE ════════════════════════════════════════
+async function loadKB(){
+  const search=document.getElementById('kb-search').value||'';
+  const cat=document.getElementById('kb-filter-cat').value||'';
+  let path='/api/knowledge-base?';
+  if(search) path+=`search=${encodeURIComponent(search)}&`;
+  if(cat) path+=`category=${cat}`;
   try{
-    const resp = await fetchWithTimeout(`${CFG.apiBaseUrl}/api/knowledge-base`,{},8000);
-    const data = await resp.json();
-    KB_ENTRIES = data.data || [];
-    renderKBTable();
-    addLog('scrape-log',`📚 Loaded ${KB_ENTRIES.length} KB entries from API`,'s');
-  }catch(e){ showErr('Knowledge Base load',e); addLog('scrape-log','KB load failed: '+e.message,'e'); }
+    const d=await api(path);
+    KB_DATA=d.data||[];
+    document.getElementById('kb-count').textContent=KB_DATA.length+' entries';
+    renderKB();
+  }catch(e){document.getElementById('kb-tbody').innerHTML=`<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--red)">${e.message}</td></tr>`;}
 }
 
-function renderKBTable(){
-  const search = (document.getElementById('kb-search')?.value||'').toLowerCase();
-  const catF   = document.getElementById('kb-filter-cat')?.value||'';
-  let entries = KB_ENTRIES;
-  if(search) entries=entries.filter(e=>(e.title+' '+e.content).toLowerCase().includes(search));
-  if(catF)   entries=entries.filter(e=>e.kb_category===catF);
-  
-  document.getElementById('kb-total').textContent=KB_ENTRIES.length;
-  document.getElementById('kb-active').textContent=KB_ENTRIES.filter(e=>e.is_active!==false).length;
-  document.getElementById('kb-approved').textContent=KB_ENTRIES.filter(e=>e.source==='approved_answer').length;
-  
+function renderKB(){
   const tb=document.getElementById('kb-tbody');
-  if(!entries.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">'+(!KB_ENTRIES.length?'Connect API and click Refresh to load knowledge base entries.':'No entries match your filter.')+'</td></tr>';return;}
-  tb.innerHTML=entries.filter(Boolean).map(e=>`<tr>
-    <td style="max-width:200px;font-weight:600;font-size:13px">${e.title}</td>
-    <td>${catBadge(e.kb_category||'faq')}</td>
+  if(!KB_DATA.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text3)">No KB entries found</td></tr>';return;}
+  tb.innerHTML=KB_DATA.map((e,i)=>`<tr>
+    <td style="color:var(--text3)">${i+1}</td>
+    <td style="font-weight:500;font-size:12.5px;max-width:160px">${e.title||''}</td>
+    <td>${catBadge(e.kb_category)}</td>
     <td style="font-size:11px;color:var(--text3)">${e.product_category||'All'}</td>
-    <td><span style="background:${e.source==='approved_answer'?'#f5f3ff':e.source==='seed'?'#f0fdf4':'#eff6ff'};color:${e.source==='approved_answer'?'#6d28d9':e.source==='seed'?'#166534':'#1e40af'};border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600">${e.source||'manual'}</span></td>
-    <td style="max-width:280px;color:var(--text2);font-size:12px">${(e.content||'').substring(0,100)}${e.content&&e.content.length>100?'...':'' }</td>
-    <td style="white-space:nowrap">
-      <button class="btn b-bl" style="padding:3px 7px;font-size:11px" onclick="openKBEditModal('${e.id}')">✏</button>
-      <button class="btn b-re" style="padding:3px 7px;font-size:11px;margin-left:3px" onclick="deleteKBEntry('${e.id}')">✕</button>
+    <td><span class="tag ${e.source==='approved_answer'?'t-gr':e.source==='seed'?'t-bl':'t-gy'}">${e.source||'manual'}</span></td>
+    <td style="max-width:280px;font-size:11.5px;color:var(--text2)">${(e.content||'').substring(0,100)}…</td>
+    <td>
+      <div style="display:flex;gap:4px">
+        <button class="btn b-gh" style="padding:3px 7px;font-size:11px" onclick="editKB('${e.id}')">✏</button>
+        <button class="btn b-re" style="padding:3px 7px;font-size:11px" onclick="deleteKB('${e.id}')">✕</button>
+      </div>
     </td>
   </tr>`).join('');
 }
 
-function openKBAddModal(){
-  document.getElementById('kb-modal-title').textContent='Add KB Entry';
-  document.getElementById('kb-modal-id').value='';
-  document.getElementById('kb-modal-entry-title').value='';
-  document.getElementById('kb-modal-entry-content').value='';
-  document.getElementById('kb-modal-entry-cat').value='product_info';
-  document.getElementById('kb-modal-entry-prodcat').value='';
-  document.getElementById('kb-modal-entry-tags').value='';
-  document.getElementById('kb-modal').style.display='block';
-}
-
-function openKBEditModal(id){
-  const e=KB_ENTRIES.find(x=>x.id===id);
-  if(!e) return;
-  document.getElementById('kb-modal-title').textContent='Edit KB Entry';
-  document.getElementById('kb-modal-id').value=e.id;
-  document.getElementById('kb-modal-entry-title').value=e.title||''  ;
-  document.getElementById('kb-modal-entry-content').value=e.content||'';
-  document.getElementById('kb-modal-entry-cat').value=e.kb_category||'faq';
-  document.getElementById('kb-modal-entry-prodcat').value=e.product_category||'';
-  document.getElementById('kb-modal-entry-tags').value=(e.tags||[]).join(', ');
-  document.getElementById('kb-modal').style.display='block';
-}
-
-async function saveKBEntry(){
-  if(!CFG.apiBaseUrl){ toast('Connect API first','w'); return; }
-  const id       = document.getElementById('kb-modal-id').value;
-  const title    = document.getElementById('kb-modal-entry-title').value.trim();
-  const content  = document.getElementById('kb-modal-entry-content').value.trim();
-  const kb_category    = document.getElementById('kb-modal-entry-cat').value;
-  const product_category = document.getElementById('kb-modal-entry-prodcat').value||null;
-  const tagsRaw  = document.getElementById('kb-modal-entry-tags').value;
-  const tags     = tagsRaw.split(',').map(t=>t.trim()).filter(Boolean);
-  if(!title||!content){ toast('Title and content required','w'); return; }
+async function addKBEntry(){
+  const title=document.getElementById('kb-title').value.trim();
+  const content=document.getElementById('kb-content').value.trim();
+  if(!title||!content){toast('Title and content required','w');return;}
   try{
-    const method = id ? 'PUT' : 'POST';
-    const url    = id ? `${CFG.apiBaseUrl}/api/knowledge-base/${id}` : `${CFG.apiBaseUrl}/api/knowledge-base`;
-    const resp   = await fetchWithTimeout(url,{method,headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({title,content,kb_category,product_category,tags})},8000);
-    if(!resp.ok) throw new Error('HTTP '+resp.status);
-    document.getElementById('kb-modal').style.display='none';
-    toast(id?'✅ KB entry updated':'✅ KB entry added');
-    await loadKBEntries();
-  }catch(e){ toast('KB save error: '+e.message,'e'); }
+    await api('/api/knowledge-base',{method:'POST',body:JSON.stringify({
+      title,content,
+      kb_category:document.getElementById('kb-cat').value,
+      product_category:document.getElementById('kb-prodcat').value||null,
+      source:'manual'
+    })});
+    toast('KB entry added!');
+    document.getElementById('kb-title').value='';
+    document.getElementById('kb-content').value='';
+    loadKB();
+  }catch(e){toast('Error: '+e.message,'e');}
 }
 
-async function deleteKBEntry(id){
-  if(!CFG.apiBaseUrl){ toast('Connect API first','w'); return; }
+async function editKB(id){
+  const e=KB_DATA.find(x=>x.id===id);if(!e)return;
+  const newContent=prompt('Edit KB entry: '+e.title,e.content);
+  if(newContent===null) return;
+  try{
+    await api(`/api/knowledge-base/${id}`,{method:'PUT',body:JSON.stringify({content:newContent})});
+    toast('Updated!');loadKB();
+  }catch(err){toast('Error: '+err.message,'e');}
+}
+
+async function deleteKB(id){
   if(!confirm('Deactivate this KB entry?')) return;
   try{
-    await fetchWithTimeout(`${CFG.apiBaseUrl}/api/knowledge-base/${id}`,{method:'DELETE'},8000);
-    toast('KB entry deactivated');
-    await loadKBEntries();
-  }catch(e){ toast('Delete error: '+e.message,'e'); }
+    await api(`/api/knowledge-base/${id}`,{method:'DELETE'});
+    toast('Entry removed');loadKB();
+  }catch(e){toast('Error: '+e.message,'e');}
 }
 
-// ═══════════════════════════════════════════════
-// ENHANCED DASHBOARD
-// ═══════════════════════════════════════════════
-async function loadDashboardStats(){
-  if(!CFG.apiBaseUrl) return;
+// ═══ CONFIGURATION ══════════════════════════════════════════
+function saveConfig(){
+  const val=document.getElementById('cfg-api').value.trim().replace(/\/+$/,'');
+  if(!val){toast('Enter API URL','w');return;}
+  API=val;
+  localStorage.setItem('qa_api_base',val);
+  toast('API URL saved!');
+  testConnection();
+}
+
+async function testConnection(){
+  const url=(document.getElementById('cfg-api').value||API).trim().replace(/\/+$/,'');
+  if(!url){toast('Enter API URL first','w');return;}
+  const res=document.getElementById('cfg-test-result');
+  res.style.display='block';res.style.background='#eff6ff';res.style.color='#1d4ed8';
+  res.textContent='Testing connection…';
   try{
-    const resp = await fetchWithTimeout(`${CFG.apiBaseUrl}/api/admin/stats`,{},8000);
-    const data = await resp.json();
-    if(!data.success) return;
-    const d = safeGet(data,'data') || {};
-    // New stat cards
-    document.getElementById('dash-review').textContent = d.review||0;
-    document.getElementById('dash-kb').textContent = d.kb_entries||0;
-    const total = d.answered||0;
-    // Automation: use local S.questions to estimate
-    const aiAnswered = S.questions.filter(q=>q.aiAnswered&&q.status==='posted').length;
-    const allPosted  = S.questions.filter(q=>q.status==='posted').length;
-    const autoPct    = allPosted>0 ? Math.round(aiAnswered/allPosted*100) : 0;
-    document.getElementById('dash-automation').textContent = autoPct+'%';
-    document.getElementById('dash-db-mode').textContent  = d.db_connected ? 'Supabase' : 'In-memory';
-    document.getElementById('dash-ai-mode').textContent  = d.ai_configured ? '🤖 Claude AI enabled' : '⚠ AI not configured';
-    // Category chart
-    renderCategoryChart(d.by_category||{});
-    // Sentiment chart
-    renderSentimentChart(d.by_sentiment||{});
-    // Update review badge
-    const badge=document.getElementById('review-badge');
-    if(badge){badge.textContent=d.review||0;badge.style.display=(d.review>0)?'inline':'none';}
-  }catch(e){ showErr('Dashboard stats',e); }
+    const r=await fetch(url+'/api/health',{signal:AbortSignal.timeout(8000)});
+    const d=await r.json();
+    res.style.background='#f0fdf4';res.style.color='#166534';
+    res.textContent=`✅ Connected! ${d.products||0} products, ${d.questions||0} questions, AI: ${d.ai_configured?'ON':'OFF'}, DB: ${d.db_connected?'Supabase':'In-memory'}`;
+    document.getElementById('api-status').textContent='🟢 Connected';
+    document.getElementById('api-status').className='tag t-gr';
+    API=url;localStorage.setItem('qa_api_base',url);
+  }catch(e){
+    res.style.background='#fef2f2';res.style.color='#991b1b';
+    res.textContent='❌ '+e.message;
+    document.getElementById('api-status').textContent='🔴 Error';
+    document.getElementById('api-status').className='tag t-re';
+  }
 }
 
-function renderCategoryChart(cats){
-  const el=document.getElementById('dash-category-chart');
-  if(!el) return;
-  const total=Object.values(cats).reduce((a,b)=>a+b,0)||1;
-  if(!cats||!Object.keys(cats).length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px">No category data yet — questions will appear here after scraping.</div>';return;}
-  el.innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
-    <div style="margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
-        <span style="color:${CAT_COLORS[k]||'#6b7280'};font-weight:600">${k.replace('_',' ')}</span>
-        <span style="color:var(--text3)">${v}</span>
-      </div>
-      <div style="background:var(--bg);border-radius:3px;height:6px">
-        <div style="background:${CAT_COLORS[k]||'#6b7280'};height:6px;border-radius:3px;width:${Math.round(v/total*100)}%"></div>
-      </div>
-    </div>`).join('');
+function refreshAll(){
+  const active=document.querySelector('.panel.active');
+  if(!active) return;
+  const id=active.id.replace('panel-','');
+  if(id==='dashboard') loadDashboard();
+  else if(id==='answers') loadAnswerQueue(AQ_PAGE);
+  else if(id==='post') loadPostQueue();
+  else if(id==='review') loadReviewQueue();
+  else if(id==='kb') loadKB();
 }
 
-function renderSentimentChart(sents){
-  const el=document.getElementById('dash-sentiment-chart');
-  if(!el) return;
-  const total=Object.values(sents).reduce((a,b)=>a+b,0)||1;
-  if(!sents||!Object.keys(sents).length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px">No sentiment data yet — questions will appear here after AI enrichment.</div>';return;}
-  const order=['positive','neutral','negative'];
-  el.innerHTML=order.filter(k=>sents[k]).map(k=>`
-    <div style="margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
-        <span style="color:${SENT_COLORS[k]};font-weight:600">${k} ${k==='positive'?'😊':k==='negative'?'😞':'😐'}</span>
-        <span style="color:var(--text3)">${sents[k]} (${Math.round(sents[k]/total*100)}%)</span>
-      </div>
-      <div style="background:var(--bg);border-radius:3px;height:8px">
-        <div style="background:${SENT_COLORS[k]};height:8px;border-radius:3px;width:${Math.round(sents[k]/total*100)}%"></div>
-      </div>
-    </div>`).join('');
-}
-
-// ═══════════════════════════════════════════════
-// CLAUDE KEY CONFIG
-// ═══════════════════════════════════════════════
-function toggleClaudeKeyVisibility(){
-  const inp=document.getElementById('cfg-claude-key');
-  inp.type = inp.type==='password' ? 'text' : 'password';
-}
-
-
-function populateRetailerDropdowns(){
-  const opts=['<option value="">All Retailers</option>'].concat(CFG.retailers.map(r=>`<option value="${r}">${r}</option>`)).join('');
-  ['q-filter','ans-f-retailer','d-retailer','rv-filter-retailer'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.innerHTML=opts;
-  });
-  const nr=document.getElementById('newRetailer'); if(nr) nr.innerHTML=CFG.retailers.map(r=>`<option value="${r}">${r}</option>`).join('');
-}
-
-// Load Claude key and refresh review on init
-document.addEventListener('DOMContentLoaded', ()=>{
-  const savedKey=localStorage.getItem('qa_claude_key');
-  if(savedKey) CFG.claudeKey=savedKey;
-});
-
-const today=new Date().toISOString().split('T')[0];
-// Restore saved API URL from previous session
-const _savedApi = localStorage.getItem('qa_api_base');
-if(_savedApi){ CFG.apiBaseUrl = _savedApi; }
-const monthAgo=new Date(Date.now()-90*86400000).toISOString().split('T')[0];
-document.getElementById('d-start').value=monthAgo;
-document.getElementById('d-end').value=today;
-populateRetailerDropdowns();
-updateTimerLabels();
-
-// Pre-load Hisense product URLs (mock retailer pages + API product IDs)
-S.urls = [
-  {id:uid(),retailer:'BESTBUY',product:'Hisense 32" A4 Series Roku TV',model:'32A47HNR',sku:'6644037',apiProductId:'BESTBUY-TV-001',url:'https://mock-bestbuy.netlify.app/products/BESTBUY-TV-001/hisense-32-a4-series-roku-tv',status:'pending',lastScraped:null,qCount:0},
-  {id:uid(),retailer:'BESTBUY',product:'Hisense 55" U6 MiniLED Fire TV',model:'55U65QF',sku:'6620385',apiProductId:'BESTBUY-TV-002',url:'https://mock-bestbuy.netlify.app/products/BESTBUY-TV-002/hisense-55-u6-miniled-fire-tv',status:'pending',lastScraped:null,qCount:0},
-  {id:uid(),retailer:'BESTBUY',product:'Hisense 75" QD7 MiniLED Fire TV',model:'75QD7QF',sku:'6621482',apiProductId:'BESTBUY-TV-003',url:'https://mock-bestbuy.netlify.app/products/BESTBUY-TV-003/hisense-75-qd7-miniled-fire-tv',status:'pending',lastScraped:null,qCount:0},
-  {id:uid(),retailer:'WALMART',product:'Hisense 55" A6 Google TV',model:'55A6H',sku:'W-HIS55A6H',apiProductId:'WALMART-TV-001',url:'https://mock-walmart.netlify.app/products/WALMART-TV-001/hisense-55-a6-google-tv',status:'pending',lastScraped:null,qCount:0},
-  {id:uid(),retailer:'AMAZON',product:'Hisense 65" A7 Android TV',model:'65A7GQ',sku:'B0AMZNHIS65',apiProductId:'AMAZON-TV-001',url:'https://mock-amazon.netlify.app/products/AMAZON-TV-001/hisense-65-a7-android-tv',status:'pending',lastScraped:null,qCount:0}
-];
-renderUrlTable();
-
-// Init log
-if(CFG.apiBaseUrl){
-  addLog('scrape-log', `🔌 Connected to mock retailer API at ${CFG.apiBaseUrl}. Click ▶ Run Now to fetch live questions.`, 's');
-} else {
-  addLog('scrape-log', '🔌 Q&A Automation ready. Go to ⚙️ Config → set API Base URL to connect to your mock retailer backend. Running in simulation mode until configured.', 'i');
-}
+// ═══ INIT ══════════════════════════════════════════════════
+(function init(){
+  if(API){
+    document.getElementById('cfg-api').value=API;
+    document.getElementById('api-status').textContent='🟡 Connecting…';
+    document.getElementById('api-status').className='tag t-am';
+    // Verify silently
+    fetch(API+'/api/health',{signal:AbortSignal.timeout(6000)})
+      .then(r=>r.json())
+      .then(d=>{
+        document.getElementById('api-status').textContent='🟢 Connected';
+        document.getElementById('api-status').className='tag t-gr';
+        updateBadges(d.questions-(d.answered||0)-( d.review||0), d.review||0);
+        loadDashboard();
+      })
+      .catch(()=>{
+        document.getElementById('api-status').textContent='🔴 Offline';
+        document.getElementById('api-status').className='tag t-re';
+      });
+  }
+})();
 </script>
 </body>
 </html>

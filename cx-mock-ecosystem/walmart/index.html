@@ -465,6 +465,16 @@ async function testApiUrl(){
   btn.textContent = '🔗 Test'; btn.disabled = false;
 }
 
+// Support direct product link: ?product={id}
+const _urlProduct = new URLSearchParams(window.location.search).get('product');
+(async function init(){
+  await loadProducts();
+  if(_urlProduct){
+    const found = ALL_PRODUCTS.find(p=>p.id===_urlProduct);
+    if(found) loadProductDetail(found.id);
+  }
+})();
+
 </script>
 </body>
 </html>

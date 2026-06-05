@@ -649,7 +649,14 @@ if(new URLSearchParams(window.location.search).get('admin')==='true') setTimeout
 // ── INIT ──────────────────────────────────────
 // Auto-fill admin input and load products with correct URL
 document.getElementById('api-url-input').value = API_BASE;
-loadProducts();
+// Support direct product link: ?product={id}
+const _urlProduct = new URLSearchParams(window.location.search).get('product');
+loadProducts().then(()=>{
+  if(_urlProduct){
+    const found = ALL_PRODUCTS.find(p=>p.id===_urlProduct);
+    if(found) loadProductDetail(found.id);
+  }
+});
 startAutoRefresh();
 log('BestBuy mock page initialized');
 

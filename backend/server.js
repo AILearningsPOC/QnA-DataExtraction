@@ -73,14 +73,9 @@ const RETAILERS=[
 ];
 
 const BASE_PRODUCTS=[
-  {category:'tv',            title:'Hisense 55" U6 Series MiniLED QLED 4K HDR Smart Fire TV (2025)',    base_price:399.99,rating:4.7,review_count:1247,image:'https://placehold.co/500x420/1a1a2e/white?text=Hisense+55%22+U6+TV',           description:'Mini-LED QLED with Dolby Vision IQ, 120Hz, Game Mode Pro 144Hz, 4K UHD.',           specs:{'Screen Size':'55"','Resolution':'4K UHD 2160p','Refresh Rate':'120Hz (144Hz VRR)','HDR':'Dolby Vision IQ, HDR10+','Platform':'Fire TV','HDMI Ports':'4 (2xHDMI 2.1)','Backlight':'Mini-LED','Wi-Fi':'Wi-Fi 6, Bluetooth 5.0'}},
-  {category:'tv',            title:'Hisense 65" U8 Series MiniLED QLED 4K Smart Google TV (2025)',      base_price:699.99,rating:4.8,review_count:892, image:'https://placehold.co/500x420/0d1b2a/white?text=Hisense+65%22+U8+TV',           description:'1500-nit Mini-LED Pro, 144Hz, Quantum Dot Color, Hands-Free Voice Control.',        specs:{'Screen Size':'65"','Resolution':'4K UHD 2160p','Refresh Rate':'144Hz VRR','Peak Brightness':'1500 nits','HDR':'Dolby Vision','Platform':'Google TV','HDMI Ports':'4 (2xHDMI 2.1)','Backlight':'Mini-LED Pro'}},
-  {category:'refrigerator',  title:'Hisense 26 cu ft French Door Bottom Freezer Refrigerator',          base_price:1299.99,rating:4.5,review_count:434,image:'https://placehold.co/500x420/2c3e50/white?text=Hisense+French+Door+Fridge',     description:'Counter-depth French door with ice maker, multi-airflow, and stainless finish.',    specs:{'Capacity':'26 cu ft','Type':'French Door','Ice Maker':'Yes','Water Dispenser':'Internal','Energy Star':'Yes','Noise':'38 dB','Finish':'Fingerprint Resistant SS'}},
-  {category:'air_cooler',    title:'Hisense 8,000 BTU Portable Air Conditioner with Dehumidifier',       base_price:299.99,rating:4.3,review_count:678, image:'https://placehold.co/500x420/2980b9/white?text=Hisense+8000+BTU+AC',           description:'3-in-1 cooling, fan and dehumidifier with Wi-Fi app control and Auto mode.',        specs:{'Cooling':'8,000 BTU','Coverage':'Up to 350 sq ft','Modes':'Cool/Fan/Dehumidify','Noise':'53 dB max / 42 dB sleep','Wi-Fi':'Yes','Energy Star':'Yes'}},
-  {category:'washing_machine',title:'Hisense 5.0 cu ft Front Load Washer with Steam and Wi-Fi',         base_price:649.99,rating:4.4,review_count:312, image:'https://placehold.co/500x420/27ae60/white?text=Hisense+Front+Load+Washer',     description:'Steam Wash, 14 cycles, 1400 RPM inverter motor, allergen cycle.',                   specs:{'Capacity':'5.0 cu ft','Type':'Front Load','Max Spin':'1400 RPM','Cycles':'14','Steam':'Yes','Energy Star':'Yes','Wi-Fi':'Yes'}},
-  {category:'gas_range',     title:'Hisense 30" 5-Burner Freestanding Gas Range with True Convection',  base_price:549.99,rating:4.6,review_count:289, image:'https://placehold.co/500x420/7f8c8d/white?text=Hisense+Gas+Range',             description:'18,000 BTU power burner, 5.0 cu ft oven, true convection, self-clean.',             specs:{'Width':'30"','Burners':'5 sealed','Power Burner':'18,000 BTU','Oven':'5.0 cu ft','Convection':'True Convection','Self-Clean':'Yes'}},
-  {category:'microwave',     title:'Hisense 1.1 cu ft Countertop Microwave with Inverter and Sensor',   base_price:89.99, rating:4.2,review_count:891, image:'https://placehold.co/500x420/8e44ad/white?text=Hisense+Microwave+1.1cu',      description:'1000W inverter microwave with sensor cooking, 9 auto-programs.',                    specs:{'Capacity':'1.1 cu ft','Wattage':'1000W','Inverter':'Yes','Sensor Cook':'Yes','Turntable':'12.4"','Programs':'9 Auto-Cook'}},
-  {category:'home_appliance',title:'Hisense 50-Bottle Dual-Zone Freestanding Wine Cooler',               base_price:199.99,rating:4.5,review_count:445, image:'https://placehold.co/500x420/2c3e50/white?text=Hisense+Wine+Cooler+50-Bottle',description:'Dual-zone 41-64F with UV glass, LED interior, whisper-quiet compressor.',           specs:{'Capacity':'50 Bottles','Zones':'Dual Zone','Temp Range':'41-64F','UV Glass':'Yes','Noise':'42 dB','Lock':'Yes'}}
+  {category:'tv',           sku_suffix:'TV-001', title:'Hisense 55\" U6 Series MiniLED QLED 4K HDR Smart Fire TV (2025)',  base_price:399.99,rating:4.7,review_count:1247,image:'https://placehold.co/500x420/1a1a2e/white?text=Hisense+55%22+U6+TV',     description:'Mini-LED QLED with Dolby Vision IQ, 120Hz, Game Mode Pro 144Hz, 4K UHD.',         specs:{'Screen Size':'55\"','Resolution':'4K UHD 2160p','Refresh Rate':'120Hz (144Hz VRR)','HDR':'Dolby Vision IQ, HDR10+','Platform':'Fire TV','HDMI Ports':'4 (2xHDMI 2.1)','Backlight':'Mini-LED','Wi-Fi':'Wi-Fi 6, Bluetooth 5.0'}},
+  {category:'tv',           sku_suffix:'TV-002', title:'Hisense 65\" U8 Series MiniLED QLED 4K Smart Google TV (2025)',    base_price:699.99,rating:4.8,review_count:892, image:'https://placehold.co/500x420/0d1b2a/white?text=Hisense+65%22+U8+TV',     description:'1500-nit Mini-LED Pro, 144Hz, Quantum Dot Color, Hands-Free Voice Control.',       specs:{'Screen Size':'65\"','Resolution':'4K UHD 2160p','Refresh Rate':'144Hz VRR','Peak Brightness':'1500 nits','HDR':'Dolby Vision','Platform':'Google TV','HDMI Ports':'4 (2xHDMI 2.1)','Backlight':'Mini-LED Pro'}},
+  {category:'refrigerator', sku_suffix:'REF-003',title:'Hisense 26 cu ft French Door Bottom Freezer Refrigerator',         base_price:1299.99,rating:4.5,review_count:434,image:'https://placehold.co/500x420/2c3e50/white?text=Hisense+French+Door+Fridge',description:'Counter-depth French door with ice maker, multi-airflow, and stainless finish.',  specs:{'Capacity':'26 cu ft','Type':'French Door','Ice Maker':'Yes','Water Dispenser':'Internal','Energy Star':'Yes','Noise':'38 dB','Finish':'Fingerprint Resistant SS'}}
 ];
 
 const QB={
@@ -283,7 +278,7 @@ async function dbGetQuestions(filters,page,limit){
     qs.sort((a,b)=>new Date(b.asked_at)-new Date(a.asked_at));
     return{data:qs.slice((page-1)*limit,page*limit),total:qs.length};
   }
-  let q=db.from('questions').select('*,answers(*)',{count:'exact'});
+  let q=db.from('questions').select('*,answers(*),products(title,product_url)',{count:'exact'});
   if(filters.product_id)  q=q.eq('product_id',filters.product_id);
   if(filters.retailer_id) q=q.eq('retailer_id',filters.retailer_id);
   if(filters.status)      q=q.eq('status',filters.status);
@@ -297,7 +292,14 @@ async function dbGetQuestions(filters,page,limit){
     if(error.message&&error.message.includes('range not satisfiable')) return{data:[],total:0};
     throw error;
   }
-  const flat=(Array.isArray(data)?data:[]).map(row=>{const ans=row.answers&&row.answers.length?row.answers[0]:null;const{answers,...rest}=row;return{...rest,answer:ans};});
+  const flat=(Array.isArray(data)?data:[]).map(row=>{
+    const ans=row.answers&&row.answers.length?row.answers[0]:null;
+    const{answers,...rest}=row;
+    // Embed product info if joined
+    const pTitle=row.products?.title||null;
+    const pUrl=row.products?.product_url||null;
+    return{...rest,answer:ans,product_title:pTitle,product_url:pUrl};
+  });
   return{data:flat,total:count||0};
 }
 
@@ -325,10 +327,12 @@ async function seedDatabase(){
     RETAILERS.forEach(r=>{
       const priceOff={bestbuy:1.00,walmart:0.95,amazon:0.98,costco:0.92}[r.id];
       BASE_PRODUCTS.forEach((bp,i)=>{
-        const sku=`${r.id.toUpperCase().slice(0,2)}-${bp.category.toUpperCase().slice(0,3)}-${String(i+1).padStart(3,'0')}`;
-        MEM_PRODUCTS.push({id:uuidv4(),retailer_id:r.id,retailer_name:r.name,sku,...bp,
-          price:Math.round(bp.base_price*priceOff*100)/100,
-          product_url:`${r.base_url}/product/${sku}`,created_at:new Date().toISOString()});
+        const sku=`${r.id.toUpperCase().slice(0,2)}-${bp.sku_suffix}`;
+        const pid=uuidv4();
+        MEM_PRODUCTS.push({id:pid,retailer_id:r.id,retailer_name:r.name,sku,category:bp.category,title:bp.title,
+          description:bp.description,base_price:bp.base_price,price:Math.round(bp.base_price*priceOff*100)/100,
+          rating:bp.rating,review_count:bp.review_count,image:bp.image,specs:bp.specs,
+          product_url:`${r.base_url}/?product=${pid}`,created_at:new Date().toISOString()});
       });
     });
     MEM_PRODUCTS.forEach(p=>{
@@ -347,15 +351,20 @@ async function seedDatabase(){
   RETAILERS.forEach(r=>{
     const priceOff={bestbuy:1.00,walmart:0.95,amazon:0.98,costco:0.92}[r.id];
     BASE_PRODUCTS.forEach((bp,i)=>{
-      const sku=`${r.id.toUpperCase().slice(0,2)}-${bp.category.toUpperCase().slice(0,3)}-${String(i+1).padStart(3,'0')}`;
+      const sku=`${r.id.toUpperCase().slice(0,2)}-${bp.sku_suffix}`;
       allProducts.push({retailer_id:r.id,retailer_name:r.name,sku,category:bp.category,title:bp.title,
         description:bp.description,base_price:bp.base_price,price:Math.round(bp.base_price*priceOff*100)/100,
         rating:bp.rating,review_count:bp.review_count,image:bp.image,specs:bp.specs,
-        product_url:`${r.base_url}/product/${sku}`});
+        product_url:`${r.base_url}/?product=PLACEHOLDER`});
     });
   });
   const{data:prods,error:pErr}=await db.from('products').insert(allProducts).select();
   if(pErr){console.error('Product seed error:',pErr.message);return;}
+  // Update product_url with real UUIDs now we have them + find retailer base_url
+  for(const p of prods){
+    const r=RETAILERS.find(x=>x.id===p.retailer_id);
+    if(r) await db.from('products').update({product_url:`${r.base_url}/?product=${p.id}`}).eq('id',p.id);
+  }
   console.log('  '+prods.length+' products seeded');
   const allQs=[];
   prods.forEach(p=>{
