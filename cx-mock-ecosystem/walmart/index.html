@@ -333,7 +333,7 @@ body{font-family:'Nunito Sans',Arial,sans-serif;background:#fff;color:var(--wm-t
     </div>
     <div class="admin-section">
       <h4>🔗 API Base URL</h4>
-      <input type="text" id="api-url-input" value="" style="width:100%;padding:7px;border:1px solid var(--wm-gray);border-radius:6px;font-size:12px;font-family:monospace" placeholder="https://your-app.up.railway.app">
+      <input type="text" id="api-url-input" value="" style="width:100%;padding:7px;border:1px solid var(--wm-gray);border-radius:6px;font-size:12px;font-family:monospace" placeholder="https://your-backend-url.com">
       <div style="display:flex;gap:6px;margin-top:6px"><button class="admin-btn admin-btn-green" style="margin:0;flex:1" onclick="saveApiUrl()">💾 Save</button><button class="admin-btn admin-btn-blue" style="margin:0;flex:1" id="test-api-btn" onclick="testApiUrl()">🔗 Test</button><button class="admin-btn" style="margin:0;flex:1;background:var(--color-background-secondary,#f5f5f5);color:#555;border:1px solid #ccc" onclick="resetApiUrl()">↺ Reset</button></div>
       <div id="api-test-result" style="font-size:11px;margin-top:6px;padding:5px 8px;border-radius:3px;display:none"></div>
     </div>
@@ -347,7 +347,7 @@ body{font-family:'Nunito Sans',Arial,sans-serif;background:#fff;color:var(--wm-t
   <div style="margin-top:8px">
     <a href="#" onclick="exportUrls()">Product URLs</a>
     <a href="#" onclick="window.open(API_BASE+'/api','_blank')">API Docs</a>
-    <a href="https://qa-automation.netlify.app" target="_blank">Q&A Automation ↗</a> · <a href="https://mock-bestbuy.netlify.app" target="_blank" style="color:#3b82f6;text-decoration:none">Bestbuy ↗</a> · <a href="https://mock-amazonde.netlify.app" target="_blank" style="color:#3b82f6;text-decoration:none">Amazon ↗</a> · <a href="https://mock-costco.netlify.app" target="_blank" style="color:#3b82f6;text-decoration:none">Costco ↗</a>
+    <a href="https://qna-automation.pages.dev" target="_blank">Q&A Automation ↗</a> · <a href="https://bestbuy-qna.pages.dev" target="_blank" style="color:#3b82f6;text-decoration:none">Bestbuy ↗</a> · <a href="https://amazon-qna.pages.dev" target="_blank" style="color:#3b82f6;text-decoration:none">Amazon ↗</a> · <a href="https://costco-qna.pages.dev" target="_blank" style="color:#3b82f6;text-decoration:none">Costco ↗</a>
   </div>
 </footer>
 
@@ -374,7 +374,7 @@ async function fetchWithTimeout(url, options, ms){
 }
 
 // ── API configuration — locked to correct Railway backend ──
-const DEFAULT_API = 'https://qna-dataextraction-production.up.railway.app'; // editable — change via Admin panel (Ctrl+Shift+A)
+const DEFAULT_API = localStorage.getItem('qa_api_base') || ''; // Set via Admin panel (Ctrl+Shift+A) — works with any hosting platform
 // Pre-fill with DEFAULT_API if nothing saved, or if a known-broken URL is cached
 (function() {
   const saved = localStorage.getItem('qa_api_base');
@@ -395,7 +395,8 @@ function toast(msg,type='ok'){const el=document.createElement('div');el.classNam
 function log(msg,type='i'){ADMIN_LOG.unshift({msg,type,time:new Date().toLocaleTimeString()});const el=document.getElementById('adm-log');if(el)el.innerHTML=ADMIN_LOG.slice(0,30).map(l=>`<div class="admin-log-item ${l.type}">[${l.time}] ${l.msg}</div>`).join('');}
 async function apiFetch(path,opts={}){try{log(`${opts.method||'GET'} ${path}`);const r=await fetch(API_BASE+path,{headers:{'Content-Type':'application/json'},...opts});if(!r.ok)throw new Error(`HTTP ${r.status}`);return await r.json();}catch(e){const _fm=e.message==='Failed to fetch'?'Cannot reach backend — check API URL in Admin panel (Ctrl+Shift+A)':e.message;log(`ERROR: ${_fm}`,'e');toast(_fm.substring(0,60),'err');return null;}}
 
-async function loadProducts(){document.getElementById('product-grid').innerHTML='<div style="text-align:center;padding:40px;color:#888">⏳ Connecting to backend…</div>';const data=await apiFetch(`/api/products?retailer=${RETAILER_ID}`);if(!data){document.getElementById('product-grid').innerHTML='<div style="text-align:center;padding:40px;color:#c00">⚠️ Could not load products. Open Admin panel (Ctrl+Shift+A) and verify the API URL.</div>';return;}ALL_PRODUCTS=(data&&Array.isArray(data.data))?data.data:(Array.isArray(data)?data:[]);if(!ALL_PRODUCTS.length){log('No products returned — check backend is running and seeded','w');}renderProducts();loadAdminStats();}
+async function loadProducts(){if(!API_BASE){ document.getElementById('product-grid').innerHTML='<div style="text-align:center;padding:40px;color:#c00"><div style="font-size:28px;margin-bottom:12px">⚙️</div><b>API URL not configured.</b><br><br>Press <kbd style="background:#f5f5f5;padding:3px 8px;border-radius:4px;border:1px solid #ccc">Ctrl+Shift+A</kbd> to open the Admin panel<br>and enter your backend API URL.<br><br><span style="font-size:12px;color:#888">Works with Render, Fly.io, Koyeb, Railway or any Node.js host</span></div>'; return; }
+  document.getElementById('product-grid').innerHTML='<div style="text-align:center;padding:40px;color:#888">⏳ Connecting to backend…</div>';const data=await apiFetch(`/api/products?retailer=${RETAILER_ID}`);if(!data){document.getElementById('product-grid').innerHTML='<div style="text-align:center;padding:40px;color:#c00">⚠️ Could not load products. Open Admin panel (Ctrl+Shift+A) and verify the API URL.</div>';return;}ALL_PRODUCTS=(data&&Array.isArray(data.data))?data.data:(Array.isArray(data)?data:[]);if(!ALL_PRODUCTS.length){log('No products returned — check backend is running and seeded','w');}renderProducts();loadAdminStats();}
 function renderProducts(){const search=document.getElementById('search-input').value.toLowerCase();let list=ALL_PRODUCTS.filter(p=>(currentFilter==='all'||p.category===currentFilter)&&(!search||p.title.toLowerCase().includes(search)));document.getElementById('product-count').textContent=`${list.length} results`;document.getElementById('product-grid').innerHTML=list.map(p=>`<div class="product-card" onclick="loadProductDetail('${p.id}')"><div class="rollback-badge">Rollback</div><div class="product-card-img"><img src="${p.image}" alt="${p.title}" loading="lazy"></div><div class="product-card-body"><div class="product-card-title">${p.title}</div><div class="product-card-model">SKU: ${p.sku}</div><div class="star-row"><span class="stars">${stars(p.rating)}</span><span class="review-count">(${p.review_count.toLocaleString()})</span></div><div><span class="product-card-price">$${Math.floor(p.price)}</span><span class="price-cents">${String(p.price.toFixed(2)).split('.')[1]}</span></div><button class="btn-add-cart" onclick="event.stopPropagation();toast('Added to cart!')">Add to cart</button></div></div>`).join('');}
 function setFilter(cat,btn){currentFilter=cat;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderProducts();}
 function filterProducts(){renderProducts();}

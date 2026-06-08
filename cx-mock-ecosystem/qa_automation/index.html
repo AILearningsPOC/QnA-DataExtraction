@@ -346,12 +346,12 @@ tr:hover td{background:#fafbff}
     <div class="card-hdr">🔌 API Connection</div>
     <div class="card-body">
       <div style="display:flex;gap:8px;margin-bottom:10px">
-        <input class="inp" id="cfg-api" placeholder="Railway API URL e.g. https://your-app.up.railway.app" style="flex:1">
+        <input class="inp" id="cfg-api" placeholder="e.g. https://your-app.onrender.com" style="flex:1">
         <button class="btn b-bl" onclick="saveConfig()">💾 Save & Connect</button>
         <button class="btn b-gh" onclick="testConnection()">🔗 Test</button>
       </div>
       <div id="cfg-test-result" style="display:none;font-size:12px;padding:8px;border-radius:6px;margin-top:6px"></div>
-      <div style="font-size:11.5px;color:var(--text3);margin-top:6px">After connecting, all tabs load live data from Supabase automatically.</div>
+      <div style="font-size:11.5px;color:var(--text3);margin-top:6px">Works with any Node.js host — Render, Fly.io, Koyeb, Railway etc. After connecting, all tabs load live data from Supabase automatically.</div>
     </div>
   </div>
   <div class="card">
@@ -359,18 +359,18 @@ tr:hover td{background:#fafbff}
     <div class="card-body" style="font-size:12.5px;color:var(--text2)">
       <p>AI answering and enrichment is handled server-side via the Railway backend.</p>
       <p style="margin-top:8px">Confidence threshold: <strong>70%</strong> — questions below this go to Review Queue.</p>
-      <p style="margin-top:4px">Model: <strong>claude-haiku-4-5-20251001</strong> (configurable via Railway env var <code>CLAUDE_MODEL</code>)</p>
-      <p style="margin-top:4px">Rate limit fix: upgrade Anthropic API key to paid tier (Tier 1) at <a href="https://console.anthropic.com/settings/limits" target="_blank" class="lnk">console.anthropic.com</a></p>
+      <p style="margin-top:4px">Model: <strong>llama-3.3-70b-versatile</strong> (configurable via <code>GROQ_MODEL</code> env var on Render)</p>
+      <p style="margin-top:4px">Get a free Groq API key at <a href="https://console.groq.com" target="_blank" class="lnk">console.groq.com</a> — free forever, no credit card needed.</p>
     </div>
   </div>
   <div class="card">
     <div class="card-hdr">🏪 Mock Retailer Pages</div>
     <div class="card-body">
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:12.5px">
-        <a href="https://bestbuy-qna-dataextraction.netlify.app" target="_blank" class="btn b-gh">🔵 Best Buy Mock ↗</a>
-        <a href="https://walm-art-qna-dataextraction.netlify.app" target="_blank" class="btn b-gh">🟢 Walmart Mock ↗</a>
-        <a href="https://amazon-qna-dataextraction.netlify.app" target="_blank" class="btn b-gh">🟠 Amazon Mock ↗</a>
-        <a href="https://costco-qna-dataextraction.netlify.app" target="_blank" class="btn b-gh">🔴 Costco Mock ↗</a>
+        <a href="https://bestbuy-qna.pages.dev" target="_blank" class="btn b-gh">🔵 Best Buy Mock ↗</a>
+        <a href="https://walmart-qna.pages.dev" target="_blank" class="btn b-gh">🟢 Walmart Mock ↗</a>
+        <a href="https://amazon-qna.pages.dev" target="_blank" class="btn b-gh">🟠 Amazon Mock ↗</a>
+        <a href="https://costco-qna.pages.dev" target="_blank" class="btn b-gh">🔴 Costco Mock ↗</a>
       </div>
     </div>
   </div>
@@ -918,6 +918,15 @@ function refreshAll(){
         document.getElementById('api-status').textContent='🟢 Connected';
         document.getElementById('api-status').className='tag t-gr';
         updateBadges(d.questions-(d.answered||0)-( d.review||0), d.review||0);
+        // Populate retailer links from health response
+        const ru = d.retailer_urls||{};
+        const rl = {bestbuy:'🔵 Best Buy',walmart:'🟢 Walmart',amazon:'🟠 Amazon',costco:'🔴 Costco'};
+        Object.entries(rl).forEach(([r,label])=>{
+          const el=document.getElementById('link-'+r);
+          if(el && ru[r]){
+            el.outerHTML=`<a href="${ru[r]}" target="_blank" class="btn b-gh">${label} ↗</a>`;
+          }
+        });
         loadDashboard();
       })
       .catch(()=>{

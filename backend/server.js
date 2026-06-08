@@ -66,10 +66,10 @@ function validate(body, ...fields) {
 
 
 const RETAILERS=[
-  {id:'bestbuy',name:'Best Buy',theme:'#003087',accent:'#FFE000',base_url:process.env.BESTBUY_URL||'https://bestbuy-qna-dataextraction.netlify.app'},
-  {id:'walmart',name:'Walmart', theme:'#0071CE',accent:'#FFC220',base_url:process.env.WALMART_URL||'https://walm-art-qna-dataextraction.netlify.app'},
-  {id:'amazon', name:'Amazon',  theme:'#131921',accent:'#FF9900',base_url:process.env.AMAZON_URL ||'https://amazon-qna-dataextraction.netlify.app'},
-  {id:'costco', name:'Costco',  theme:'#005DAA',accent:'#E31837',base_url:process.env.COSTCO_URL ||'https://costco-qna-dataextraction.netlify.app'}
+  {id:'bestbuy',name:'Best Buy',theme:'#003087',accent:'#FFE000',base_url:process.env.BESTBUY_URL||'https://bestbuy-qna.pages.dev'},
+  {id:'walmart',name:'Walmart', theme:'#0071CE',accent:'#FFC220',base_url:process.env.WALMART_URL||'https://walmart-qna.pages.dev'},
+  {id:'amazon', name:'Amazon',  theme:'#131921',accent:'#FF9900',base_url:process.env.AMAZON_URL ||'https://amazon-qna.pages.dev'},
+  {id:'costco', name:'Costco',  theme:'#005DAA',accent:'#E31837',base_url:process.env.COSTCO_URL ||'https://costco-qna.pages.dev'}
 ];
 
 const BASE_PRODUCTS=[
