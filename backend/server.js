@@ -1,7 +1,7 @@
 'use strict';
 // Q&A Automation API v2.0 — Supabase + Claude AI
 // Updated: 2026-06-04 — store RAG confidence back on question; all tests passing
-// Set env vars: SUPABASE_URL, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY
+// Set env vars: SUPABASE_URL, SUPABASE_SERVICE_KEY, GROQ_API_KEY
 
 const express  = require('express');
 const cors     = require('cors');
@@ -16,7 +16,7 @@ const { createClient } = require('@supabase/supabase-js');
 const PORT           = process.env.PORT            || 3000;
 const SUPABASE_URL   = process.env.SUPABASE_URL    || 'https://gctubfsyefndegomxwew.supabase.co';
 const SUPABASE_KEY   = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || '';
-const ANTHROPIC_KEY  = process.env.ANTHROPIC_API_KEY || '';
+const GROQ_KEY = process.env.GROQ_API_KEY || '';
 const AI_THRESHOLD   = parseFloat(process.env.AI_CONFIDENCE_THRESHOLD || '0.70');
 
 let db = null, DB_READY = false;
@@ -161,26 +161,34 @@ function makeQRow(product,qa){
   };
 }
 
-async function callClaude(prompt,systemPrompt,maxTokens){
-  if(!ANTHROPIC_KEY) throw new Error('ANTHROPIC_API_KEY not configured');
-  // Use model from env var for flexibility, default to claude-haiku-4-5
-  const model = process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001';
-  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+async function callGroq(prompt,systemPrompt,maxTokens){
+  if(!GROQ_KEY) throw new Error('GROQ_API_KEY not configured');
+  // Use model from env var — default llama-3.3-70b-versatile (best accuracy for JSON + multilingual)
+  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+  const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
     method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01'},
-    body:JSON.stringify({model,max_tokens:maxTokens||500,
-      system:systemPrompt,messages:[{role:'user',content:prompt}]})
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+    body:JSON.stringify({
+      model,
+      max_tokens:maxTokens||500,
+      temperature:0.1,
+      messages:[
+        {role:'system',content:systemPrompt},
+        {role:'user',content:prompt}
+      ]
+    })
   });
-  if(!resp.ok){const e=await resp.text();throw new Error('Claude '+resp.status+': '+e);}
+  if(!resp.ok){const e=await resp.text();throw new Error('Groq '+resp.status+': '+e);}
   const d=await resp.json();
-  return d.content[0].text;
+  if(d.error) throw new Error('Groq error: '+d.error.message);
+  return d.choices[0].message.content;
 }
 
 async function enrichQuestion(questionText,productTitle,productCategory){
   const sys=`You are a customer question analyzer for Hisense electronics. Respond ONLY with a valid JSON object. No markdown fences, no explanation, no extra text. Required keys: language (ISO 639-1 code), language_name (full language name in English), category (one of: product_info pricing warranty compatibility usage complaint returns other), sentiment (positive neutral or negative), needs_review (true or false), review_reason (string explaining why, or null)`;
   const prompt=`Product: ${productTitle} (${productCategory})\nCustomer question: "${questionText}"\nDetect language and analyze. Respond with JSON only.`;
   try{
-    const raw=await callClaude(prompt,sys,250);
+    const raw=await callGroq(prompt,sys,250);
     // Strip any markdown fences, leading/trailing whitespace
     const cleaned=raw.replace(/```json?/g,'').replace(/```/g,'').trim();
     // Extract JSON object (handles cases where Claude adds text around it)
@@ -226,7 +234,7 @@ async function generateRagAnswer(question,product,kbEntries){
   const ctx=kbEntries.length?kbEntries.map((e,i)=>`[KB${i+1}] ${e.title}: ${e.content}`).join('\n'):'No relevant KB entries found.';
   const prompt=`Product: ${product.title}\nSpecs: ${JSON.stringify(product.specs||{})}\n\nKnowledge Base:\n${ctx}\n\nQuestion: "${question}"\n\nGenerate a helpful answer. If KB is insufficient, set confidence < 0.5 and needs_review true.`;
   try{
-    const raw=await callClaude(prompt,sys,400);
+    const raw=await callGroq(prompt,sys,400);
     const cleaned=raw.replace(/```json?|```/g,'').trim();
     const match=cleaned.match(/\{[\s\S]*\}/);
     if(!match) throw new Error('No JSON object in Claude response');
@@ -409,12 +417,12 @@ app.get('/api/health',async(_req,res)=>{
     }
     const retailer_urls=Object.fromEntries(RETAILERS.map(r=>[r.id,r.base_url]));
     res.json({status:'ok',uptime:Math.round(process.uptime()),db_connected:DB_READY,
-      ai_configured:!!ANTHROPIC_KEY,products:p,questions:q,answered:a,review:rev,kb_entries:kb,
+      ai_configured:!!GROQ_KEY,products:p,questions:q,answered:a,review:rev,kb_entries:kb,
       retailer_urls,timestamp:new Date().toISOString()});
   }catch(e){res.json({status:'ok',uptime:Math.round(process.uptime()),db_connected:false,error:e.message});}
 });
 
-app.get('/api',(_req,res)=>res.json({name:'Q&A Automation API v2.0',db_mode:DB_READY?'supabase':'in-memory',ai_enabled:!!ANTHROPIC_KEY,endpoints:['GET /api/health','GET /api/retailers','GET /api/products?retailer=&category=','GET /api/products/:id','GET /api/products/:id/questions?status=&page=1&limit=10','POST /api/questions/add','POST /api/questions/generate','POST /api/questions/:id/answer','POST /api/questions/:id/ai-answer','PATCH /api/questions/:id/approve','GET /api/knowledge-base?category=&product_category=&search=','POST /api/knowledge-base','PUT /api/knowledge-base/:id','DELETE /api/knowledge-base/:id','GET /api/admin/stats','GET /api/admin/questions?retailer=&status=&category=&search=','GET /api/export/qa','GET /api/logs']}));
+app.get('/api',(_req,res)=>res.json({name:'Q&A Automation API v2.0',db_mode:DB_READY?'supabase':'in-memory',ai_enabled:!!GROQ_KEY,endpoints:['GET /api/health','GET /api/retailers','GET /api/products?retailer=&category=','GET /api/products/:id','GET /api/products/:id/questions?status=&page=1&limit=10','POST /api/questions/add','POST /api/questions/generate','POST /api/questions/:id/answer','POST /api/questions/:id/ai-answer','PATCH /api/questions/:id/approve','GET /api/knowledge-base?category=&product_category=&search=','POST /api/knowledge-base','PUT /api/knowledge-base/:id','DELETE /api/knowledge-base/:id','GET /api/admin/stats','GET /api/admin/questions?retailer=&status=&category=&search=','GET /api/export/qa','GET /api/logs']}));
 
 app.get('/api/retailers',(_req,res)=>res.json({success:true,data:RETAILERS}));
 
@@ -458,7 +466,7 @@ app.post('/api/questions/add',async(req,res)=>{
       asked_by:asked_by||'Anonymous',asked_at:new Date().toISOString(),status:'unanswered',
       ai_generated:false,language:'en',language_name:'English',category:'product_info',sentiment:'neutral',ai_confidence:0};
     if(!DB_READY) qData.id=uuidv4();
-    if(ANTHROPIC_KEY){
+    if(GROQ_KEY){
       try{const e=await enrichQuestion(question_text,product.title,product.category);
         Object.assign(qData,{language:e.language,language_name:e.language_name,category:e.category,sentiment:e.sentiment});
         if(e.needs_review){qData.status='review';qData.review_reason=e.review_reason;}
@@ -510,7 +518,7 @@ app.post('/api/questions/:id/answer',async(req,res)=>{
 
 app.post('/api/questions/:id/ai-answer',async(req,res)=>{
   try{
-    if(!ANTHROPIC_KEY) return res.status(400).json({success:false,error:'ANTHROPIC_API_KEY not configured'});
+    if(!GROQ_KEY) return res.status(400).json({success:false,error:'GROQ_API_KEY not configured'});
     let question;
     if(DB_READY){const{data}=await db.from('questions').select('*').eq('id',req.params.id).single();question=data;}
     else{question=MEM_QUESTIONS.find(q=>q.id===req.params.id);}
@@ -631,7 +639,7 @@ app.get('/api/admin/stats',async(_req,res)=>{
         answered:MEM_QUESTIONS.filter(q=>q.status==='answered').length,
         unanswered:MEM_QUESTIONS.filter(q=>q.status==='unanswered').length,
         review:MEM_QUESTIONS.filter(q=>q.status==='review').length,
-        db_connected:false,ai_configured:!!ANTHROPIC_KEY,by_retailer:{},by_category:{},by_sentiment:{}};
+        db_connected:false,ai_configured:!!GROQ_KEY,by_retailer:{},by_category:{},by_sentiment:{}};
       RETAILERS.forEach(r=>{const rqs=MEM_QUESTIONS.filter(q=>q.retailer_id===r.id);s.by_retailer[r.id]={name:r.name,questions:rqs.length,answered:rqs.filter(q=>q.status==='answered').length};});
       return res.json({success:true,data:s});
     }
@@ -657,7 +665,7 @@ app.get('/api/admin/stats',async(_req,res)=>{
     }
     res.json({success:true,data:{total_products:pc.count||0,total_questions:qAll.count||0,
       answered:qAns.count||0,unanswered:qUnans.count||0,review:qRev.count||0,
-      kb_entries:kbc.count||0,db_connected:true,ai_configured:!!ANTHROPIC_KEY,
+      kb_entries:kbc.count||0,db_connected:true,ai_configured:!!GROQ_KEY,
       by_category,by_sentiment,by_retailer}});
   }catch(e){res.status(500).json({success:false,error:e.message});}
 });
@@ -743,7 +751,7 @@ seedDatabase().then(()=>{
   app.listen(PORT,()=>{
     console.log('\nQ&A Automation API v2.0 on port '+PORT);
     console.log('DB: '+(DB_READY?'Supabase':'In-memory'));
-    console.log('AI: '+(ANTHROPIC_KEY?'Claude enabled':'Not configured'));
+    console.log('AI: '+(GROQ_KEY?'Claude enabled':'Not configured'));
     console.log('Docs: http://localhost:'+PORT+'/api\n');
   });
 }).catch(err=>{console.error('Startup error:',err);process.exit(1);});
