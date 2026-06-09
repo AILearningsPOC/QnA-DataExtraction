@@ -347,7 +347,7 @@ body{font-family:'Nunito Sans',Arial,sans-serif;background:#fff;color:var(--wm-t
   <div style="margin-top:8px">
     <a href="#" onclick="exportUrls()">Product URLs</a>
     <a href="#" onclick="window.open(API_BASE+'/api','_blank')">API Docs</a>
-    <a href="https://qna-automation.pages.dev" target="_blank">Q&A Automation ↗</a> · <a href="https://bestbuy-qna.pages.dev" target="_blank" style="color:#3b82f6;text-decoration:none">Bestbuy ↗</a> · <a href="https://amazon-qna.pages.dev" target="_blank" style="color:#3b82f6;text-decoration:none">Amazon ↗</a> · <a href="https://costco-qna.pages.dev" target="_blank" style="color:#3b82f6;text-decoration:none">Costco ↗</a>
+    <a href="https://ba0d6180.qna-dataextraction.pages.dev/qa_automation/" target="_blank">Q&A Automation ↗</a> · <a href="https://ba0d6180.qna-dataextraction.pages.dev/bestbuy/" target="_blank" style="color:#3b82f6;text-decoration:none">Bestbuy ↗</a> · <a href="https://ba0d6180.qna-dataextraction.pages.dev/amazon/" target="_blank" style="color:#3b82f6;text-decoration:none">Amazon ↗</a> · <a href="https://ba0d6180.qna-dataextraction.pages.dev/costco/" target="_blank" style="color:#3b82f6;text-decoration:none">Costco ↗</a>
   </div>
 </footer>
 
@@ -374,7 +374,7 @@ async function fetchWithTimeout(url, options, ms){
 }
 
 // ── API configuration — locked to correct Railway backend ──
-const DEFAULT_API = localStorage.getItem('qa_api_base') || ''; // Set via Admin panel (Ctrl+Shift+A) — works with any hosting platform
+const DEFAULT_API = localStorage.getItem('qa_api_base') || 'https://qna-dataextraction.onrender.com'; // Set via Admin panel (Ctrl+Shift+A) — works with any hosting platform
 // Pre-fill with DEFAULT_API if nothing saved, or if a known-broken URL is cached
 (function() {
   const saved = localStorage.getItem('qa_api_base');

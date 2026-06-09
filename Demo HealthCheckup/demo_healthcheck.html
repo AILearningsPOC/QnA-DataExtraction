@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Demo Health Check</title>
+<style>
+  body{font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:30px;max-width:700px;margin:0 auto}
+  h1{font-size:22px;margin-bottom:6px;color:#fff}
+  .sub{font-size:13px;color:#64748b;margin-bottom:28px}
+  .card{background:#1e293b;border-radius:10px;padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;gap:14px}
+  .icon{font-size:22px;width:32px;text-align:center;flex-shrink:0}
+  .info{flex:1}
+  .name{font-size:14px;font-weight:600;color:#f1f5f9}
+  .detail{font-size:12px;color:#94a3b8;margin-top:3px}
+  .status{font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;white-space:nowrap}
+  .ok{background:#064e3b;color:#6ee7b7}
+  .fail{background:#7f1d1d;color:#fca5a5}
+  .checking{background:#1e3a5f;color:#93c5fd}
+  .btn{background:#3b82f6;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
+  .btn:hover{background:#2563eb}
+  .btn:disabled{background:#334155;cursor:not-allowed}
+  .summary{text-align:center;padding:16px;border-radius:10px;margin-top:8px;font-size:15px;font-weight:600;display:none}
+  .summary.ok{background:#064e3b;color:#6ee7b7;display:block}
+  .summary.fail{background:#7f1d1d;color:#fca5a5;display:block}
+  a{color:#60a5fa;text-decoration:none;font-size:12px}
+  a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<h1>🚀 Demo Health Check</h1>
+<div class="sub">Run this before your demo to confirm everything is live</div>
+
+<div class="card">
+  <div class="icon">⚙️</div>
+  <div class="info">
+    <div class="name">Backend API (Render)</div>
+    <div class="detail" id="backend-detail">https://qna-dataextraction.onrender.com</div>
+  </div>
+  <div class="status checking" id="backend-status">Checking…</div>
+</div>
+
+<div class="card">
+  <div class="icon">🗄️</div>
+  <div class="info">
+    <div class="name">Database (Supabase)</div>
+    <div class="detail" id="db-detail">PostgreSQL connection</div>
+  </div>
+  <div class="status checking" id="db-status">Checking…</div>
+</div>
+
+<div class="card">
+  <div class="icon">🤖</div>
+  <div class="info">
+    <div class="name">AI Engine (Groq)</div>
+    <div class="detail" id="ai-detail">llama-3.3-70b-versatile</div>
+  </div>
+  <div class="status checking" id="ai-status">Checking…</div>
+</div>
+
+<div class="card">
+  <div class="icon">📦</div>
+  <div class="info">
+    <div class="name">Products in DB</div>
+    <div class="detail" id="products-detail">Should be 12 (3 per retailer)</div>
+  </div>
+  <div class="status checking" id="products-status">Checking…</div>
+</div>
+
+<div class="card">
+  <div class="icon">📚</div>
+  <div class="info">
+    <div class="name">Knowledge Base</div>
+    <div class="detail" id="kb-detail">RAG entries for AI answers</div>
+  </div>
+  <div class="status checking" id="kb-status">Checking…</div>
+</div>
+
+<div class="card">
+  <div class="icon">🏪</div>
+  <div class="info">
+    <div class="name">Mock Retailer Pages</div>
+    <div class="detail" id="pages-detail">All 4 pages on Cloudflare</div>
+  </div>
+  <div class="status checking" id="pages-status">Checking…</div>
+</div>
+
+<div class="card">
+  <div class="icon">📊</div>
+  <div class="info">
+    <div class="name">Q&A Dashboard</div>
+    <div class="detail"><a href="https://ba0d6180.qna-dataextraction.pages.dev/qa_automation/" target="_blank">Open Dashboard ↗</a></div>
+  </div>
+  <div class="status checking" id="dash-status">Checking…</div>
+</div>
+
+<div id="summary"></div>
+
+<button class="btn" id="recheck-btn" onclick="runChecks()">↺ Re-run All Checks</button>
+
+<div style="margin-top:20px;font-size:12px;color:#475569;text-align:center">
+  Quick links: 
+  <a href="https://ba0d6180.qna-dataextraction.pages.dev/bestbuy/" target="_blank">BestBuy</a> · 
+  <a href="https://ba0d6180.qna-dataextraction.pages.dev/walmart/" target="_blank">Walmart</a> · 
+  <a href="https://ba0d6180.qna-dataextraction.pages.dev/amazon/" target="_blank">Amazon</a> · 
+  <a href="https://ba0d6180.qna-dataextraction.pages.dev/costco/" target="_blank">Costco</a> · 
+  <a href="https://ba0d6180.qna-dataextraction.pages.dev/qa_automation/" target="_blank">Dashboard</a>
+</div>
+
+<script>
+const API = 'https://qna-dataextraction.onrender.com';
+const CF  = 'https://ba0d6180.qna-dataextraction.pages.dev';
+
+function setStatus(id, ok, text, detail){
+  const el = document.getElementById(id+'-status');
+  el.textContent = text;
+  el.className = 'status ' + (ok ? 'ok' : ok===null ? 'checking' : 'fail');
+  if(detail) document.getElementById(id+'-detail').textContent = detail;
+}
+
+async function checkBackend(){
+  try{
+    const r = await fetch(API+'/api/health', {signal: AbortSignal.timeout(10000)});
+    const d = await r.json();
+    if(d.status !== 'ok') throw new Error('status: '+d.status);
+
+    setStatus('backend', true, '✅ Online',  `Uptime: ${Math.round(d.uptime/60)}min`);
+    setStatus('db',      d.db_connected, d.db_connected?'✅ Connected':'❌ Not connected', 'Supabase PostgreSQL');
+    setStatus('ai',      d.ai_configured, d.ai_configured?'✅ Configured':'❌ Missing key', d.ai_configured?'Groq ready':'Set GROQ_API_KEY on Render');
+    setStatus('products',d.products===12, d.products===12?'✅ 12 products':'⚠️ '+d.products+' products', d.products+' products in Supabase');
+    setStatus('kb',      d.kb_entries>=17, d.kb_entries>=17?'✅ '+d.kb_entries+' entries':'⚠️ Only '+d.kb_entries, d.kb_entries+' KB entries for RAG');
+    return d;
+  }catch(e){
+    const msg = e.name==='TimeoutError'?'Timeout — server waking up, retry in 30s':e.message;
+    setStatus('backend', false, '❌ Offline', msg);
+    setStatus('db',      false, '❌ Unknown', 'Backend unreachable');
+    setStatus('ai',      false, '❌ Unknown', 'Backend unreachable');
+    setStatus('products',false, '❌ Unknown', 'Backend unreachable');
+    setStatus('kb',      false, '❌ Unknown', 'Backend unreachable');
+    return null;
+  }
+}
+
+async function checkPages(){
+  const pages = [
+    {name:'bestbuy', url: CF+'/bestbuy/'},
+    {name:'walmart', url: CF+'/walmart/'},
+    {name:'amazon',  url: CF+'/amazon/'},
+    {name:'costco',  url: CF+'/costco/'},
+    {name:'qa_auto', url: CF+'/qa_automation/'},
+  ];
+  try{
+    const results = await Promise.all(pages.map(p =>
+      fetch(p.url, {signal:AbortSignal.timeout(8000)})
+        .then(r => ({name:p.name, ok:r.ok}))
+        .catch(() => ({name:p.name, ok:false}))
+    ));
+    const failed = results.filter(r=>!r.ok).map(r=>r.name);
+    if(failed.length===0){
+      setStatus('pages', true,  '✅ All Live',  'BestBuy, Walmart, Amazon, Costco');
+      setStatus('dash',  true,  '✅ Live',       CF+'/qa_automation/');
+    } else {
+      setStatus('pages', false, '❌ '+failed.join(', ')+' down', 'Check Cloudflare deployment');
+      setStatus('dash',  results.find(r=>r.name==='qa_auto')?.ok, 
+                results.find(r=>r.name==='qa_auto')?.ok?'✅ Live':'❌ Down', '');
+    }
+    return failed.length===0;
+  }catch(e){
+    setStatus('pages', false, '❌ Error', e.message);
+    setStatus('dash',  false, '❌ Error', e.message);
+    return false;
+  }
+}
+
+async function runChecks(){
+  const btn = document.getElementById('recheck-btn');
+  const sum = document.getElementById('summary');
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+  sum.className = 'summary';
+  sum.textContent = '';
+
+  // Reset all to checking
+  ['backend','db','ai','products','kb','pages','dash'].forEach(id=>
+    setStatus(id, null, 'Checking…', null)
+  );
+
+  const [health, pagesOk] = await Promise.all([checkBackend(), checkPages()]);
+
+  const allOk = health &&
+    health.db_connected &&
+    health.ai_configured &&
+    health.products === 12 &&
+    health.kb_entries >= 17 &&
+    pagesOk;
+
+  sum.className = 'summary ' + (allOk ? 'ok' : 'fail');
+  sum.textContent = allOk
+    ? '🎉 All systems go — you are demo ready!'
+    : '⚠️ Some checks failed — fix before presenting';
+
+  btn.disabled = false;
+  btn.textContent = '↺ Re-run All Checks';
+}
+
+// Run on load
+runChecks();
+</script>
+</body>
+</html>
