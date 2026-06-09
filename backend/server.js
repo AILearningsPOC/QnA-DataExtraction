@@ -47,7 +47,7 @@ app.use((req,_res,next)=>{
   next();
 });
 
-// ─── CENTRALIZED HELPERS ──────────────────────────────────────
+// ─── CENTRALIZED HELPERSz ──────────────────────────────────────
 // Consistent error response
 function errRes(res, status, message) {
   if (!res.headersSent) res.status(status).json({ success: false, error: message });
