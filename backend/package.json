@@ -1,7 +1,7 @@
 {
   "name": "qa-automation-api",
-  "version": "2.0.1",
-  "description": "Q&A Automation Mock Retailer API \u2014 Supabase + Claude AI enrichment + RAG",
+  "version": "2.1.0",
+  "description": "Q&A Automation Mock Retailer API \u2014 Supabase + Groq AI + RAG + PDF Manuals",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -13,7 +13,9 @@
     "express": "^4.18.3",
     "@supabase/supabase-js": "^2.43.4",
     "uuid": "^9.0.1",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "pdf-parse": "^1.1.1",
+    "multer": "^1.4.5-lts.1"
   },
   "engines": {
     "node": ">=18.0.0"

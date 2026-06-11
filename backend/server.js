@@ -6,6 +6,16 @@
 const express  = require('express');
 const cors     = require('cors');
 const { v4: uuidv4 } = require('uuid');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if(file.mimetype === 'application/pdf') cb(null, true);
+    else cb(new Error('Only PDF files are accepted'));
+  }
+});
 require('dotenv').config();
 
 let XLSX;
@@ -47,7 +57,7 @@ app.use((req,_res,next)=>{
   next();
 });
 
-// ─── CENTRALIZED HELPERSz ──────────────────────────────────────
+// ─── CENTRALIZED HELPERS ──────────────────────────────────────
 // Consistent error response
 function errRes(res, status, message) {
   if (!res.headersSent) res.status(status).json({ success: false, error: message });
@@ -630,6 +640,53 @@ app.delete('/api/knowledge-base/:id',async(req,res)=>{
     await db.from('knowledge_base').update({is_active:false}).eq('id',req.params.id);
     res.json({success:true,message:'Entry deactivated'});
   }catch(e){res.status(500).json({success:false,error:e.message});}
+});
+
+// ── PDF MANUAL UPLOAD ─────────────────────────────────────────
+// POST /api/knowledge-base/upload-manual (multipart/form-data)
+// Fields: file (PDF), product_category (optional), title (optional)
+// Extracts text from PDF → saves as KB entry → discards PDF
+app.post('/api/knowledge-base/upload-manual',upload.single('file'),async(req,res)=>{
+  try{
+    if(!req.file) return res.status(400).json({success:false,error:'No PDF file uploaded'});
+    const title=req.body.title||(req.file.originalname.replace(/\.pdf$/i,'').replace(/[-_]/g,' '));
+    const product_category=req.body.product_category||null;
+    // Extract text from PDF buffer
+    let pdfText='';
+    try{
+      const parsed=await pdfParse(req.file.buffer);
+      pdfText=parsed.text||'';
+    }catch(pdfErr){
+      return res.status(422).json({success:false,error:'Could not parse PDF: '+pdfErr.message});
+    }
+    if(!pdfText.trim()) return res.status(422).json({success:false,error:'PDF appears to have no readable text (may be image-only)'});
+    // Clean up text — remove excessive whitespace
+    const content=pdfText.replace(/\n{3,}/g,'\n\n').replace(/[ \t]{3,}/g,' ').trim();
+    const wordCount=content.split(/\s+/).length;
+    // Save as KB entry
+    const kbEntry={
+      title:`[Manual] ${title}`,
+      content,
+      kb_category:'product_info',
+      product_category,
+      tags:['manual','pdf',title.toLowerCase().split(' ')[0]],
+      source:'manual',
+      is_active:true
+    };
+    let saved;
+    if(DB_READY){
+      const{data,error}=await db.from('knowledge_base').insert(kbEntry).select().single();
+      if(error) throw error;
+      saved=data;
+    }else{
+      saved={...kbEntry,id:uuidv4(),created_at:new Date().toISOString()};
+      MEM_KB.push(saved);
+    }
+    res.json({success:true,data:saved,word_count:wordCount,pages:req.file.size});
+  }catch(e){
+    if(e.message&&e.message.includes('Only PDF')) return res.status(400).json({success:false,error:e.message});
+    res.status(500).json({success:false,error:e.message});
+  }
 });
 
 app.get('/api/admin/stats',async(_req,res)=>{

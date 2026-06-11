@@ -123,6 +123,18 @@ tr:hover td{background:#fafbff}
 
 /* Review item */
 .rv-reason{font-size:11px;color:#92400e;background:#fffbeb;padding:4px 8px;border-radius:4px;margin-top:4px;max-width:260px}
+
+/* Inline review panel */
+.rv-expand{background:#f8f9ff;border-top:2px solid #3b82f6}
+.rv-expand td{padding:14px 16px}
+.rv-panel{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rv-panel-left{font-size:12.5px}
+.rv-panel-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.rv-panel-val{color:var(--text2);line-height:1.5}
+.rv-answer-area{width:100%;min-height:90px;border:1px solid var(--card-border);border-radius:6px;padding:8px 10px;font-size:12.5px;font-family:var(--font);resize:vertical;background:#fff}
+.rv-answer-area:focus{border-color:var(--blue);outline:none}
+.rv-btn-row{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.rv-char-count{font-size:11px;color:var(--text3);margin-left:auto}
 </style>
 </head>
 <body>
@@ -296,6 +308,37 @@ tr:hover td{background:#fafbff}
 
 <!-- ══ KNOWLEDGE BASE ══ -->
 <div id="panel-kb" class="panel">
+  <!-- PDF Manual Upload -->
+  <div class="card" style="margin-bottom:14px" id="manual-upload-card">
+    <div class="card-hdr">
+      📄 Upload Product Manual (PDF)
+      <button class="btn b-gh" style="font-size:11px" onclick="document.getElementById('manual-upload-section').style.display=document.getElementById('manual-upload-section').style.display==='none'?'block':'none'">▼ Expand</button>
+    </div>
+    <div id="manual-upload-section" style="display:none">
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <input class="inp" id="manual-title" placeholder="Manual title e.g. Hisense U6 Series User Guide" style="width:100%">
+          <select class="inp" id="manual-prodcat" style="width:100%">
+            <option value="">All Products</option>
+            <option value="tv">TV</option>
+            <option value="refrigerator">Refrigerator</option>
+          </select>
+        </div>
+        <div id="manual-drop-zone" style="border:2px dashed var(--card-border);border-radius:8px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg)"
+          onclick="document.getElementById('manual-file-input').click()"
+          ondragover="event.preventDefault();this.style.borderColor='var(--blue)';this.style.background='#eff6ff'"
+          ondragleave="this.style.borderColor='var(--card-border)';this.style.background='var(--bg)'"
+          ondrop="event.preventDefault();this.style.borderColor='var(--card-border)';this.style.background='var(--bg)';handleManualDrop(event)">
+          <div style="font-size:28px;margin-bottom:8px">📄</div>
+          <div style="font-size:13px;font-weight:500;color:var(--text2)">Drop PDF here or click to browse</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Max 20MB · PDF only · Text will be extracted and saved to KB</div>
+          <input type="file" id="manual-file-input" accept=".pdf,application/pdf" style="display:none" onchange="handleManualFile(this.files[0])">
+        </div>
+        <div id="manual-status" style="display:none;margin-top:10px;padding:10px 14px;border-radius:6px;font-size:12.5px"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="card" style="margin-bottom:14px">
     <div class="card-hdr">➕ Add KB Entry</div>
     <div class="card-body">
@@ -359,8 +402,6 @@ tr:hover td{background:#fafbff}
     <div class="card-body" style="font-size:12.5px;color:var(--text2)">
       <p>AI answering and enrichment is handled server-side via the Railway backend.</p>
       <p style="margin-top:8px">Confidence threshold: <strong>70%</strong> — questions below this go to Review Queue.</p>
-      <p style="margin-top:4px">Model: <strong>llama-3.3-70b-versatile</strong> via Groq (configurable via <code>GROQ_MODEL</code> env var on Render)</p>
-      <p style="margin-top:4px">Get a free Groq API key at <a href="https://console.groq.com" target="_blank" class="lnk">console.groq.com</a> — free forever, no credit card needed.</p>
       <p style="margin-top:4px">Model: <strong>claude-haiku-4-5-20251001</strong> (configurable via Railway env var <code>CLAUDE_MODEL</code>)</p>
     </div>
   </div>
@@ -368,10 +409,10 @@ tr:hover td{background:#fafbff}
     <div class="card-hdr">🏪 Mock Retailer Pages</div>
     <div class="card-body">
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:12.5px">
-        <a href="https://ba0d6180.qna-dataextraction.pages.dev/bestbuy/" target="_blank" class="btn b-gh">🔵 Best Buy Mock ↗</a>
-        <a href="https://ba0d6180.qna-dataextraction.pages.dev/walmart/" target="_blank" class="btn b-gh">🟢 Walmart Mock ↗</a>
-        <a href="https://ba0d6180.qna-dataextraction.pages.dev/amazon/" target="_blank" class="btn b-gh">🟠 Amazon Mock ↗</a>
-        <a href="https://ba0d6180.qna-dataextraction.pages.dev/costco/" target="_blank" class="btn b-gh">🔴 Costco Mock ↗</a>
+        <a href="https://bestbuy-qna.pages.dev" target="_blank" class="btn b-gh">🔵 Best Buy Mock ↗</a>
+        <a href="https://walmart-qna.pages.dev" target="_blank" class="btn b-gh">🟢 Walmart Mock ↗</a>
+        <a href="https://amazon-qna.pages.dev" target="_blank" class="btn b-gh">🟠 Amazon Mock ↗</a>
+        <a href="https://costco-qna.pages.dev" target="_blank" class="btn b-gh">🔴 Costco Mock ↗</a>
       </div>
     </div>
   </div>
@@ -381,7 +422,7 @@ tr:hover td{background:#fafbff}
 
 <script>
 // ═══ CONFIG ═══════════════════════════════════════════════
-let API = localStorage.getItem('qa_api_base') || 'https://qna-dataextraction.onrender.com';
+let API = localStorage.getItem('qa_api_base') || '';
 const PAGE_META = {
   dashboard:{title:'Analytics',sub:'Live stats from Supabase'},
   answers:  {title:'Answer Queue',sub:'Unanswered and pending AI responses'},
@@ -742,11 +783,12 @@ function renderReviewQueue(){
   if(!RV_DATA.length){tb.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text3)">No items in review queue 🎉</td></tr>';return;}
   tb.innerHTML=RV_DATA.map((q,i)=>{
     const conf=q.ai_confidence||0;
-    // Clean review reason — don't show raw API error JSON to operator
     let reason=q.review_reason||'Manual review required';
     if(reason.includes('{"type":"error"')){ reason='AI service error — please answer manually'; }
     const productUrl=q.product_url||'';
-    return `<tr>
+    const savedDraft=LOCAL_EDITS[q.id]||'';
+    const hasDraft=!!savedDraft;
+    return `<tr id="rv-row-${q.id}">
       <td style="color:var(--text3)">${i+1}</td>
       <td style="font-size:16px">${langFlag(q.language||'en')}</td>
       <td>${catBadge(q.category)}</td>
@@ -759,28 +801,79 @@ function renderReviewQueue(){
       <td>${viewLink(productUrl)}</td>
       <td>
         <div style="display:flex;gap:4px;flex-wrap:wrap">
-          <button class="btn b-gr" style="padding:3px 7px;font-size:11px" onclick="openReviewModal('${q.id}')">✏ Review</button>
+          <button class="btn b-gr" style="padding:3px 7px;font-size:11px" onclick="toggleReviewPanel('${q.id}')">
+            ${hasDraft?'✏ Edit Draft':'✏ Review'}
+          </button>
           <button class="btn b-gh" style="padding:3px 7px;font-size:11px" onclick="skipReview('${q.id}')">Skip</button>
+        </div>
+        ${hasDraft?'<div style="font-size:10px;color:var(--green);margin-top:3px">💾 Draft saved</div>':''}
+      </td>
+    </tr>
+    <tr id="rv-panel-${q.id}" style="display:none" class="rv-expand">
+      <td colspan="11">
+        <div class="rv-panel">
+          <div class="rv-panel-left">
+            <div class="rv-panel-label">Question</div>
+            <div class="rv-panel-val" style="font-weight:500;margin-bottom:10px">"${q.question_text||''}"</div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
+              <div><div class="rv-panel-label">Product</div><div class="rv-panel-val">${(q.product_title||'').substring(0,40)}</div></div>
+              <div><div class="rv-panel-label">Retailer</div><div class="rv-panel-val">${q.retailer_id?.toUpperCase()||''}</div></div>
+              <div><div class="rv-panel-label">Language</div><div class="rv-panel-val">${langFlag(q.language||'en')} ${q.language_name||'English'}</div></div>
+              <div><div class="rv-panel-label">Category</div><div class="rv-panel-val">${catBadge(q.category)}</div></div>
+              <div><div class="rv-panel-label">Sentiment</div><div class="rv-panel-val">${sentBadge(q.sentiment)}</div></div>
+              ${conf>0?`<div><div class="rv-panel-label">AI Confidence</div><div class="rv-panel-val">${confBadge(conf)}</div></div>`:''}
+            </div>
+            <div style="margin-top:10px"><div class="rv-panel-label">Review Reason</div><div class="rv-reason" style="max-width:100%">${reason}</div></div>
+          </div>
+          <div>
+            <div class="rv-panel-label">Answer <span style="font-weight:400;text-transform:none">(edit below)</span></div>
+            <textarea class="rv-answer-area" id="rv-answer-${q.id}"
+              oninput="document.getElementById('rv-chars-${q.id}').textContent=this.value.length+' chars'"
+              placeholder="Type your answer here…">${q.answer?.answer_text||savedDraft}</textarea>
+            <div class="rv-btn-row">
+              <button class="btn b-gh" style="font-size:11px" onclick="saveDraft('${q.id}')">💾 Save Draft</button>
+              <button class="btn b-gr" style="font-size:11px" onclick="approveFromPanel('${q.id}',false)">✅ Approve</button>
+              <button class="btn b-bl" style="font-size:11px" onclick="approveFromPanel('${q.id}',true)">📚 Approve + Add to KB</button>
+              <button class="btn b-gh" style="font-size:11px" onclick="toggleReviewPanel('${q.id}')">✕ Close</button>
+              <span class="rv-char-count" id="rv-chars-${q.id}">${(q.answer?.answer_text||savedDraft).length} chars</span>
+            </div>
+          </div>
         </div>
       </td>
     </tr>`;
   }).join('');
 }
 
-async function openReviewModal(qid){
-  const q=RV_DATA.find(x=>x.id===qid);
-  if(!q) return;
-  const existing=q.answer?.answer_text||LOCAL_EDITS[qid]||'';
-  const ans=prompt(`Review: "${q.question_text}"\n\nProduct: ${q.product_title||q.product_id}\nRetailer: ${q.retailer_id}\n\nEnter your answer:`,existing);
-  if(ans===null) return;
-  if(!ans.trim()){toast('Answer cannot be empty','w');return;}
-  const addToKb=confirm('Add this answer to the Knowledge Base for future AI use?');
+// Toggle inline review panel open/closed
+function toggleReviewPanel(qid){
+  const panel=document.getElementById('rv-panel-'+qid);
+  if(!panel) return;
+  const isOpen=panel.style.display!=='none';
+  // Close all other open panels first
+  document.querySelectorAll('[id^="rv-panel-"]').forEach(p=>p.style.display='none');
+  if(!isOpen) panel.style.display='table-row';
+}
+
+// Save draft without approving — stays in review queue
+function saveDraft(qid){
+  const ta=document.getElementById('rv-answer-'+qid);
+  if(!ta||!ta.value.trim()){toast('Enter an answer first','w');return;}
+  LOCAL_EDITS[qid]=ta.value.trim();
+  saveLocalEdits();
+  toast('Draft saved — still in review queue','ok');
+  // Re-render to show "Draft saved" indicator
+  renderReviewQueue();
+}
+
+// Approve from inline panel
+async function approveFromPanel(qid,addToKb){
+  const ta=document.getElementById('rv-answer-'+qid);
+  if(!ta||!ta.value.trim()){toast('Enter an answer before approving','w');return;}
+  const ansText=ta.value.trim();
   try{
-    // Save answer first
-    await api(`/api/questions/${qid}/answer`,{method:'POST',body:JSON.stringify({answer_text:ans.trim(),answered_by:'Operator',is_approved:true})});
-    // Approve
+    await api(`/api/questions/${qid}/answer`,{method:'POST',body:JSON.stringify({answer_text:ansText,answered_by:'Operator',is_approved:true})});
     await api(`/api/questions/${qid}/approve`,{method:'PATCH',body:JSON.stringify({approved_by:'Operator',add_to_kb:addToKb})});
-    LOCAL_EDITS[qid]=ans.trim();saveLocalEdits();
+    LOCAL_EDITS[qid]=ansText; saveLocalEdits();
     toast('Answer approved'+(addToKb?' and added to KB':'')+'!');
     loadReviewQueue();
     loadAnswerQueue(AQ_PAGE);
@@ -791,6 +884,44 @@ function skipReview(qid){
   RV_DATA=RV_DATA.filter(q=>q.id!==qid);
   renderReviewQueue();
   updateBadges(0,RV_DATA.length);
+}
+
+// ═══ PDF MANUAL UPLOAD ══════════════════════════════════════
+function handleManualDrop(e){
+  const file=e.dataTransfer.files[0];
+  if(file) handleManualFile(file);
+}
+
+async function handleManualFile(file){
+  if(!file) return;
+  if(file.type!=='application/pdf'){toast('Only PDF files accepted','w');return;}
+  if(file.size>20*1024*1024){toast('File too large — max 20MB','w');return;}
+  const title=document.getElementById('manual-title').value.trim()||file.name.replace(/\.pdf$/i,'').replace(/[-_]/g,' ');
+  const prodCat=document.getElementById('manual-prodcat').value||'';
+  const status=document.getElementById('manual-status');
+  status.style.display='block';
+  status.style.background='#eff6ff';status.style.color='#1d4ed8';status.style.border='1px solid #bfdbfe';
+  status.innerHTML='⏳ Extracting text from PDF…';
+  document.getElementById('manual-drop-zone').style.opacity='0.5';
+  try{
+    const form=new FormData();
+    form.append('file',file);
+    form.append('title',title);
+    if(prodCat) form.append('product_category',prodCat);
+    const res=await fetch(API+'/api/knowledge-base/upload-manual',{method:'POST',body:form});
+    const d=await res.json();
+    if(!d.success) throw new Error(d.error||'Upload failed');
+    status.style.background='#f0fdf4';status.style.color='#166534';status.style.border='1px solid #bbf7d0';
+    status.innerHTML=`✅ Manual uploaded — <strong>${d.word_count?.toLocaleString()||'?'} words</strong> extracted and saved to Knowledge Base as "<strong>${d.data?.title||title}</strong>"`;
+    document.getElementById('manual-title').value='';
+    document.getElementById('manual-file-input').value='';
+    setTimeout(()=>loadKB(),800);
+  }catch(e){
+    status.style.background='#fef2f2';status.style.color='#991b1b';status.style.border='1px solid #fecaca';
+    status.innerHTML='❌ '+e.message;
+  }finally{
+    document.getElementById('manual-drop-zone').style.opacity='1';
+  }
 }
 
 // ═══ KNOWLEDGE BASE ════════════════════════════════════════
@@ -847,11 +978,25 @@ async function addKBEntry(){
 
 async function editKB(id){
   const e=KB_DATA.find(x=>x.id===id);if(!e)return;
-  const newContent=prompt('Edit KB entry: '+e.title,e.content);
-  if(newContent===null) return;
+  // Inline edit — replace the content cell with a textarea
+  const row=document.querySelector(`button[onclick="editKB('${id}')"]`)?.closest('tr');
+  if(!row) return;
+  const contentCell=row.cells[5];
+  if(contentCell.querySelector('textarea')) return; // already editing
+  const original=e.content||'';
+  contentCell.innerHTML=`<textarea style="width:100%;min-height:70px;font-size:11px;padding:4px;border:1px solid var(--blue);border-radius:4px;font-family:var(--font);resize:vertical">${original.replace(/</g,'&lt;')}</textarea>
+    <div style="display:flex;gap:4px;margin-top:4px">
+      <button class="btn b-gr" style="padding:2px 8px;font-size:11px" onclick="saveKBEdit('${id}',this)">💾 Save</button>
+      <button class="btn b-gh" style="padding:2px 8px;font-size:11px" onclick="loadKB()">✕</button>
+    </div>`;
+}
+
+async function saveKBEdit(id,btn){
+  const ta=btn.closest('td').querySelector('textarea');
+  if(!ta) return;
   try{
-    await api(`/api/knowledge-base/${id}`,{method:'PUT',body:JSON.stringify({content:newContent})});
-    toast('Updated!');loadKB();
+    await api(`/api/knowledge-base/${id}`,{method:'PUT',body:JSON.stringify({content:ta.value})});
+    toast('KB entry updated!');loadKB();
   }catch(err){toast('Error: '+err.message,'e');}
 }
 
@@ -909,7 +1054,7 @@ function refreshAll(){
 // ═══ INIT ══════════════════════════════════════════════════
 (function init(){
   if(API){
-    document.getElementById('cfg-api').value=API||'https://qna-dataextraction.onrender.com';
+    document.getElementById('cfg-api').value=API;
     document.getElementById('api-status').textContent='🟡 Connecting…';
     document.getElementById('api-status').className='tag t-am';
     // Verify silently
