@@ -409,10 +409,10 @@ tr:hover td{background:#fafbff}
     <div class="card-hdr">🏪 Mock Retailer Pages</div>
     <div class="card-body">
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:12.5px">
-        <a href="https://bestbuy-qna.pages.dev" target="_blank" class="btn b-gh">🔵 Best Buy Mock ↗</a>
-        <a href="https://walmart-qna.pages.dev" target="_blank" class="btn b-gh">🟢 Walmart Mock ↗</a>
-        <a href="https://amazon-qna.pages.dev" target="_blank" class="btn b-gh">🟠 Amazon Mock ↗</a>
-        <a href="https://costco-qna.pages.dev" target="_blank" class="btn b-gh">🔴 Costco Mock ↗</a>
+        <a href="https://ba0d6180.qna-dataextraction.pages.dev/bestbuy/" target="_blank" class="btn b-gh">🔵 Best Buy Mock ↗</a>
+        <a href="https://ba0d6180.qna-dataextraction.pages.dev/walmart/" target="_blank" class="btn b-gh">🟢 Walmart Mock ↗</a>
+        <a href="https://ba0d6180.qna-dataextraction.pages.dev/amazon/" target="_blank" class="btn b-gh">🟠 Amazon Mock ↗</a>
+        <a href="https://ba0d6180.qna-dataextraction.pages.dev/costco/" target="_blank" class="btn b-gh">🔴 Costco Mock ↗</a>
       </div>
     </div>
   </div>
@@ -422,7 +422,7 @@ tr:hover td{background:#fafbff}
 
 <script>
 // ═══ CONFIG ═══════════════════════════════════════════════
-let API = localStorage.getItem('qa_api_base') || '';
+let API = localStorage.getItem('qa_api_base') || 'https://qna-dataextraction.onrender.com';
 const PAGE_META = {
   dashboard:{title:'Analytics',sub:'Live stats from Supabase'},
   answers:  {title:'Answer Queue',sub:'Unanswered and pending AI responses'},
@@ -1054,7 +1054,7 @@ function refreshAll(){
 // ═══ INIT ══════════════════════════════════════════════════
 (function init(){
   if(API){
-    document.getElementById('cfg-api').value=API;
+    document.getElementById('cfg-api').value=API||'https://qna-dataextraction.onrender.com';
     document.getElementById('api-status').textContent='🟡 Connecting…';
     document.getElementById('api-status').className='tag t-am';
     // Verify silently
